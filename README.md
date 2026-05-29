@@ -41,10 +41,17 @@
         ```
         * It will open a postgres client with blade db active. Exit using `\q` command.
 
-## Building the database.
-* With `pwd` as `.../migrations` run command:
+## Building / Destroying the database.
+* In file alembic.ini, update the `sqlalchemy.url` on line 89, as 
     ```
-        goose postgres "<access_key>" up
+    postgresql+psycopg://username:password@host:port/database
     ```
-    * This will generate the schema and setup the database in you can check the database
-    using `\d+` in postgres client.
+    * Then to update the schema to latest version, run:
+        ```ssh
+            alembic upgrade head
+        ```
+    * And to remove the database you can run:
+        ```ssh
+            alembic downgrade base
+        ```
+---
