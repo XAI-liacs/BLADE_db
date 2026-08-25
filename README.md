@@ -37,26 +37,37 @@
         ```
 * Get your connection string of the format:
     ```
-        protocol://username:password@host:port/database
+        protocol://<username>:<password>@host:port/database
     ```
-    * Let's caled this `access_key`.
+    * Let's call this `access_key`.
     * Test it using `psql`, example:
         ```sql
-            psql "postgres://username:@localhost:5432/blade"
+            psql "postgres://username:password@localhost:5432/blade"
         ```
         * It will open a postgres client with blade db active. Exit using `\q` command.
 
 ## Building / Destroying the database.
-* In file alembic.ini, update the `sqlalchemy.url` on line 89, as
-    ```
-    postgresql+psycopg://username:password@host:port/database
-    ```
-    * Then to update the schema to latest version, run:
-        ```ssh
-            alembic upgrade head
-        ```
-    * And to remove the database you can run:
-        ```ssh
-            alembic downgrade base
-        ```
+* For managing the schema of the database, we are using `goose`:
+* Use command:
+  ```bash
+    $: go install github.com/pressly/goose/v3/cmd/goose@latest
+  ```
+* Once installed, there are schema management files available in directory `/sql/schema`, when in that directory use command:
+  ```bash
+    $: goose postgres "<access_key>" up
+  ```
+  to build the database in the PostgreSQL, and:
+
+  ```bash
+    $: goose postgres "<access_key>" down
+  ```
+
+  to undo the build.
+
+## Safe Data Injection.
+* For implementing data injection into database, with proper input cleaning, we are using `SQLC`.
+* Install it using:
+  ```bash
+    go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+  ```
 ---
