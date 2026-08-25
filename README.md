@@ -1,4 +1,9 @@
-# Blade Database
+# Blade Database HTTP
+
+* This is a web interface with blade database project that translates the postgresql commands to http commands for easy use as the backend in the BladeDB.
+
+## Database architecture:
+![Database](./src/1.jpeg)
 
 ## Setting Up PostgreSQL:
 * Run the following command:
@@ -42,7 +47,7 @@
         * It will open a postgres client with blade db active. Exit using `\q` command.
 
 ## Building / Destroying the database.
-* In file alembic.ini, update the `sqlalchemy.url` on line 89, as 
+* In file alembic.ini, update the `sqlalchemy.url` on line 89, as
     ```
     postgresql+psycopg://username:password@host:port/database
     ```
