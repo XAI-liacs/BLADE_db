@@ -1,4 +1,5 @@
 # Update the user name and password in the following program, and rename a new copy of file to .env
 # Make sure never to commit actual access key to repo
 
-export access_key='postgres://<user_name>:<password>@localhost:5432/blade?sslmode=disable'
+export database_key='postgres://<user_name>:<password>@localhost:5432/blade?sslmode=disable'
+export test_key='postgres://<user_name>:<password>@localhost:5432/blade?sslmode=disable'
