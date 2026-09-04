@@ -7,13 +7,13 @@ CREATE TABLE run(
 
 CREATE TABLE experiment(
     id UUID PRIMARY KEY,
-    start_date TIMESTAMP NOT NULL,
-    end_date TIMESTAMP NOT NULL
+    start_date TIMESTAMPTZ NOT NULL,
+    end_date TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE tag(
     id UUID PRIMARY KEY,
-    tag TEXT NOT NULL
+    tag TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE problem(

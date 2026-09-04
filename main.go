@@ -1,35 +1,19 @@
 package main
 
 import (
+	"anantashahane/BLADE_db/internal/config"
 	"anantashahane/BLADE_db/internal/database"
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/google/uuid"
-
-	"database/sql"
 
 	_ "github.com/lib/pq"
 )
 
-type state struct {
-	db      *database.Queries
-	db_path string
-}
-
 func main() {
-	dbURL := os.Getenv("database_key")
-	fmt.Println(dbURL)
-	db, err := sql.Open("postgres", dbURL)
-
-	if err != nil {
-		print("Could not instantiate database.")
-		return
-	}
-	dbQueries := database.New(db)
-	app_state := state{db: dbQueries, db_path: dbURL}
-	_, err = app_state.db.CreateRun(context.Background(), database.CreateRunParams{
+	app_state := config.GetContext("deployment")
+	_, err := app_state.DB.CreateRun(context.Background(), database.CreateRunParams{
 		ID:   uuid.New(),
 		Seed: 1,
 	})
@@ -39,7 +23,7 @@ func main() {
 		return
 	}
 
-	all_runs, err := app_state.db.GetRuns(context.Background())
+	all_runs, err := app_state.DB.GetRuns(context.Background())
 	for _, run := range all_runs {
 		fmt.Println(run)
 	}
