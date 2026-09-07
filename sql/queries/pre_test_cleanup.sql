@@ -6,3 +6,9 @@ DELETE FROM experiment;
 
 -- name: ClearTag :exec
 DELETE FROM tag;
+
+-- name: ClearMessage :exec
+DELETE FROM message;
+
+-- name: ClearProblem :exec
+DELETE FROM problem;

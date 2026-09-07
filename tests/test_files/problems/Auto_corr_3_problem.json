@@ -1,0 +1,21 @@
+{
+    "tags": [
+        "trends",
+        "analysis",
+        "time-series"
+    ],
+    "name": "Auto-Correlation 3",
+    "prompt": "\n\nWrite a python class with function `__call__`, that returns a list of floats f of length N.\n- Where N is number of bins over [-1/4, 1/4] with discretization of dx = 0.5 / N.\n- Auto-convolution of `g = dx * conv(f, f, mode=\"full\")`, where g lies in range [-1/2, 1/2].\n- Optimise for objective of minimize  max_t |(f*f)(t)| / (\u222b f)^2, where entries in the list f may be positive or negative and do not normalise the f, scaling does not change the score.\n- Symmetry or piecewise-constant structure is allowed if helpful.\n- Set N = 400 as default.\n\n\n\nAn example template of such program is given by:\n```python\nclass AutoCorreCandidate_3:\n\n    def __call__(self):\n        return [0,0]*400\n```\n\n\n\nGive an excellent and novel algorithm to solve this task and also give it a one-line description, describing the main idea. Give the response in the format:\n# Description: <short-description>\n# Code:\n```python\n<code>\n```\n\n",
+    "minimisation": true,
+    "evaluator": "    def evaluate(self, solution: Solution) -> Solution:\n        code = solution.code\n\n        try:\n            f, err = self._get_time_series(code, name=solution.name)\n            if err is not None:\n                raise err\n        except Exception as e:\n            print(\"\\t Exception in `auto_correlation_ineq3.py`, \" + e.__repr__())\n            solution = solution.set_scores(float(\"inf\"), f\"exec-error {e}\", e)\n            return solution\n\n        try:\n            if f.ndim != 1 or f.size == 0:\n                raise ValueError(\"f must be a non-empty 1D array\")\n\n            dx = self.dx\n            g = dx * np.convolve(f, f, mode=\"full\")\n            I = dx * float(np.sum(f))\n            if I == 0.0:\n                raise ValueError(\"Integral \u222bf must be nonzero for C3\")\n\n            score = float(np.max(np.abs(g)) / (I * I))  # minimize\n            solution = solution.set_scores(\n                score, f\"C3 ratio = {score:.6g}, best known = {self.best_known:.6g}\"\n            )\n        except Exception as e:\n            solution = solution.set_scores(float(\"inf\"), f\"calc-error {e}\", e)\n        return solution\n",
+    "config": {
+        "dependencies": [
+            "numpy>=2",
+            "cloudpickle>=3.1.0,<4",
+            "joblib>=1.4.2,<2",
+            "scipy"
+        ],
+        "imports": "import numpy as np\n",
+        "n_bins": 400
+    }
+}

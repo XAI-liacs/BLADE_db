@@ -16,13 +16,21 @@ CREATE TABLE tag(
     tag TEXT NOT NULL UNIQUE
 );
 
-CREATE TABLE problem(
+CREATE TABLE problem (
     id UUID PRIMARY KEY,
     name TEXT NOT NULL,
     prompt TEXT NOT NULL,
     evaluator TEXT NOT NULL,
     minimisation BOOL NOT NULL,
-    config JSONB
+    config JSONB,
+    CONSTRAINT unique_problem
+        UNIQUE NULLS NOT DISTINCT (
+            name,
+            prompt,
+            evaluator,
+            minimisation,
+            config
+        )
 );
 
 CREATE TABLE solution(
