@@ -1,0 +1,16 @@
+[
+    {
+        "model": "gemma4:latest",
+        "config": {
+            "port": 11434
+        },
+        "hardware": {
+            "cpu_name": "Intel(R) Xeon(R) Gold 6142 CPU @ 2.60GHz",
+            "gpu_name": "ASPEED Technology, Inc. ASPEED Graphics Family (rev 41)",
+            "memory": 257573.3,
+            "video_memory": 15360,
+            "cpu_core_count": 32,
+            "os_name": "Linux-5.15.0-163-generic-x86_64-with-glibc2.35"
+        }
+    }
+]

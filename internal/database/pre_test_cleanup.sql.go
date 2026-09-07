@@ -18,12 +18,30 @@ func (q *Queries) ClearExperiment(ctx context.Context) error {
 	return err
 }
 
+const clearLLM = `-- name: ClearLLM :exec
+DELETE FROM llm
+`
+
+func (q *Queries) ClearLLM(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, clearLLM)
+	return err
+}
+
 const clearMessage = `-- name: ClearMessage :exec
 DELETE FROM message
 `
 
 func (q *Queries) ClearMessage(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, clearMessage)
+	return err
+}
+
+const clearMethod = `-- name: ClearMethod :exec
+DELETE FROM method
+`
+
+func (q *Queries) ClearMethod(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, clearMethod)
 	return err
 }
 
@@ -42,6 +60,15 @@ DELETE FROM run
 
 func (q *Queries) ClearRun(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, clearRun)
+	return err
+}
+
+const clearSolution = `-- name: ClearSolution :exec
+DELETE FROM solution
+`
+
+func (q *Queries) ClearSolution(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, clearSolution)
 	return err
 }
 

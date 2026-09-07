@@ -16,16 +16,16 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
-func get_problem_file_names() ([]string, error) {
-	entries, err := os.ReadDir("test_files/problems")
+func get_file_names(base string) ([]string, error) {
+	entries, err := os.ReadDir(base)
 	if err != nil {
 		return []string{}, err
 	}
 	fileNames := make([]string, 0, len(entries))
 	for _, entry := range entries {
 		if !entry.IsDir() {
-			fileNames = append(fileNames, fmt.Sprintf("test_files/problems/%s",
-				entry.Name()),
+			fileNames = append(fileNames, fmt.Sprintf("%s/%s",
+				base, entry.Name()),
 			)
 
 		}
@@ -45,7 +45,19 @@ func read_file(file_name string) (content map[string]any, err error) {
 	return content, err
 }
 
-func isEqualJsonObjects(m1 pqtype.NullRawMessage, m2 pqtype.NullRawMessage) bool {
+func read_file_aray_content(file_name string) (content []map[string]any, err error) {
+	content_byte, err := os.ReadFile(file_name)
+	if err != nil {
+		return content, errors.New("Cannot read file " + file_name + " error: " + err.Error())
+	}
+	err = json.Unmarshal(content_byte, &content)
+	if err != nil {
+		return content, errors.New("Cannot deserialise json file " + file_name + " error: " + err.Error())
+	}
+	return content, err
+}
+
+func isEqualNullableJsonObject(m1 pqtype.NullRawMessage, m2 pqtype.NullRawMessage) bool {
 	if m1.Valid != m2.Valid {
 		return false
 	}
@@ -65,8 +77,22 @@ func isEqualJsonObjects(m1 pqtype.NullRawMessage, m2 pqtype.NullRawMessage) bool
 	return reflect.DeepEqual(data1, data2)
 }
 
+func isEqualJsonObjects(m1 json.RawMessage, m2 json.RawMessage) bool {
+	data1 := make(map[string]any)
+	data2 := make(map[string]any)
+	err := json.Unmarshal(m1, &data1)
+	if err != nil {
+		return false
+	}
+	err = json.Unmarshal(m2, &data2)
+	if err != nil {
+		return false
+	}
+	return reflect.DeepEqual(data1, data2)
+}
+
 func TestFilesAvailable(t *testing.T) {
-	file_names, err := get_problem_file_names()
+	file_names, err := get_file_names("test_files/problems")
 	if err != nil {
 		t.Fatalf("Cannot find problem files %s", err.Error())
 	}
@@ -76,10 +102,10 @@ func TestFilesAvailable(t *testing.T) {
 	}
 }
 
-func TestMessageInsertionAndGetter(t *testing.T) {
+func TestMessageSetterAndGetter(t *testing.T) {
 	state := config.GetContext("test")
-	preTestClear(state)
-	file_names, err := get_problem_file_names()
+	// preTestClear(state)
+	file_names, err := get_file_names("test_files/problems")
 	if err != nil {
 		t.Fatalf("Cannot find problem files %s", err.Error())
 	}
@@ -141,7 +167,7 @@ func TestMessageInsertionAndGetter(t *testing.T) {
 		if insertions[index].Evaluator != inserted_item.Evaluator {
 			t.Fatalf("Evaluator miss match %v vs %v", insertions[index].Evaluator, inserted_item.Evaluator)
 		}
-		if !isEqualJsonObjects(insertions[index].Config, inserted_item.Config) {
+		if !isEqualNullableJsonObject(insertions[index].Config, inserted_item.Config) {
 			t.Fatalf("Config miss match %v vs %v", insertions[index].Config, inserted_item.Config)
 		}
 	}

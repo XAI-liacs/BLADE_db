@@ -17,11 +17,14 @@ func preTestClear(db_config config.State) {
 	db_config.DB.ClearTag(context.Background())
 	db_config.DB.ClearMessage(context.Background())
 	db_config.DB.ClearProblem(context.Background())
+	db_config.DB.ClearLLM(context.Background())
+	db_config.DB.ClearMethod(context.Background())
+	db_config.DB.ClearSolution(context.Background())
 }
 
 func TestRun(t *testing.T) {
 	state := config.GetContext("test")
-	preTestClear(state)
+	// preTestClear(state)
 
 	// Test insertion of same seed succeeds with different id.
 	insertions := make([]database.CreateRunParams, 0, 3)

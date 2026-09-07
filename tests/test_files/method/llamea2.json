@@ -1,0 +1,10 @@
+{
+    "name": "LLaMEA-gpt-oss:20b",
+    "source": "https://github.com/XAI-liacs/LLaMEA",
+    "config": {
+        "n_parents": 4,
+        "n_offspring": 4,
+        "minimization": true,
+        "budget": 200
+    }
+}

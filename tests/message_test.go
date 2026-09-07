@@ -12,7 +12,7 @@ import (
 func TestMessage(t *testing.T) {
 	// Cannot insert same message again and again.
 	state := config.GetContext("test")
-	preTestClear(state)
+	// preTestClear(state)
 
 	inserted_messages := make([]database.CreateMessageParams, 0)
 

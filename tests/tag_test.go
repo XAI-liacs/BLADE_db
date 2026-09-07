@@ -12,7 +12,7 @@ import (
 func TestTag(t *testing.T) {
 	// Cannot insert same tags again and again.
 	state := config.GetContext("test")
-	preTestClear(state)
+	// preTestClear(state)
 
 	inserted_tags := make([]database.CreateTagParams, 0)
 

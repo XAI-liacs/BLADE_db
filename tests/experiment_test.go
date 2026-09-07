@@ -52,7 +52,7 @@ func getRandomExperiment() database.CreateExperimentParams {
 
 func TestExperiment(t *testing.T) {
 	state := config.GetContext("test")
-	preTestClear(state)
+	// preTestClear(state)
 
 	// Test insertion of same seed succeeds with different id.
 	insertions := make([]database.CreateExperimentParams, 0, 3)
