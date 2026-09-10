@@ -69,27 +69,7 @@ func Greet(name String) (String) {
 	return test_solutions, nil
 }
 
-func optional_string_equality(lhs, rhs sql.NullString) bool {
-	if lhs.Valid == rhs.Valid {
-		if !lhs.Valid {
-			return true
-		}
-		return lhs.String == rhs.String
-	}
-	return false
-}
-
-func optional_int_equality(lhs, rhs sql.NullInt32) bool {
-	if lhs.Valid == rhs.Valid {
-		if !lhs.Valid {
-			return true
-		}
-		return lhs.Int32 == rhs.Int32
-	}
-	return false
-}
-
-func TestSolutionIO(t *testing.T) {
+func TestBaseTableSolution(t *testing.T) {
 	test_data, err := generate_test_sequence()
 	if err != nil {
 		t.Fatalf("Unable to instantiate test cases: %s", err.Error())

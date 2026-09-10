@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestMessage(t *testing.T) {
+func TestBaseTableMessage(t *testing.T) {
 	// Cannot insert same message again and again.
 	state := config.GetContext("test")
 	// preTestClear(state)

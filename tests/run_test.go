@@ -11,18 +11,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func preTestClear(db_config config.State) {
-	db_config.DB.ClearRun(context.Background())
-	db_config.DB.ClearExperiment(context.Background())
-	db_config.DB.ClearTag(context.Background())
-	db_config.DB.ClearMessage(context.Background())
-	db_config.DB.ClearProblem(context.Background())
-	db_config.DB.ClearLLM(context.Background())
-	db_config.DB.ClearMethod(context.Background())
-	db_config.DB.ClearSolution(context.Background())
-}
-
-func TestRun(t *testing.T) {
+func TestBaseTableRun(t *testing.T) {
 	state := config.GetContext("test")
 	// preTestClear(state)
 

@@ -9,10 +9,10 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestTag(t *testing.T) {
+func TestBaseTableTag(t *testing.T) {
 	// Cannot insert same tags again and again.
 	state := config.GetContext("test")
-	// preTestClear(state)
+	state.DB.ClearTag(context.Background())
 
 	inserted_tags := make([]database.CreateTagParams, 0)
 

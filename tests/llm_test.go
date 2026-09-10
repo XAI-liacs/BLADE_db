@@ -12,7 +12,7 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
-func TestLLMGetterAndSetter(t *testing.T) {
+func TestBaseTableLLM(t *testing.T) {
 	state := config.GetContext("test")
 	insertions := make([]database.CreateLLMParams, 0)
 	// preTestClear(state)

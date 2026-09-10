@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestMethodGetterAndSetter(t *testing.T) {
+func TestBaseTabletMethod(t *testing.T) {
 	state := config.GetContext("test")
 	insertions := make([]database.CreateMethodParams, 0)
 	// preTestClear(state)

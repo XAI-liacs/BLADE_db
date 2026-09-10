@@ -7,50 +7,11 @@ import (
 	"math/rand"
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 )
 
-func getRandomTime(before time.Time) time.Time {
-	date := before.AddDate(
-		-rand.Intn(4),
-		-rand.Intn(12),
-		-rand.Intn(30))
-	return date.In(time.Local)
-}
-
-func Equal(
-	insertion database.CreateExperimentParams,
-	retrieved database.Experiment,
-) bool {
-	if insertion.ID != retrieved.ID {
-		return false
-	}
-
-	loc := insertion.StartDate.Location()
-
-	if !insertion.StartDate.Equal(retrieved.StartDate.In(loc)) {
-		return false
-	}
-
-	if !insertion.EndDate.Equal(retrieved.EndDate.In(loc)) {
-		return false
-	}
-
-	return true
-}
-
-func getRandomExperiment() database.CreateExperimentParams {
-	start_date := getRandomTime(time.Now())
-	end_date := getRandomTime(start_date)
-	return database.CreateExperimentParams{
-		ID:        uuid.New(),
-		StartDate: start_date,
-		EndDate:   end_date}
-}
-
-func TestExperiment(t *testing.T) {
+func TestBaseTableExperiment(t *testing.T) {
 	state := config.GetContext("test")
 	// preTestClear(state)
 
