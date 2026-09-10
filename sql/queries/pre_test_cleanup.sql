@@ -21,3 +21,6 @@ DELETE FROM method;
 
 -- name: ClearSolution :exec
 DELETE FROM solution;
+
+-- name: ClearTagProblem :exec
+DELETE FROM tag_problem;

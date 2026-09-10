@@ -80,3 +80,12 @@ func (q *Queries) ClearTag(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, clearTag)
 	return err
 }
+
+const clearTagProblem = `-- name: ClearTagProblem :exec
+DELETE FROM tag_problem
+`
+
+func (q *Queries) ClearTagProblem(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, clearTagProblem)
+	return err
+}
