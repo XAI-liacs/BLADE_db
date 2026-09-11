@@ -32,8 +32,8 @@ func generate_test_sequence() (test_instance []TestSolution, err error) {
 		Description: sql.NullString{String: "A simple string interpolating hello swift.", Valid: true},
 		Generation:  sql.NullInt32{Int32: 0, Valid: true},
 		Code: sql.NullString{String: `func Greet(name: String) -> String {
-	return "Hello, \(name).
-}"`, Valid: true},
+	return "Hello, \(name)."
+}`, Valid: true},
 		Metadata: pqtype.NullRawMessage{RawMessage: make([]byte, 0), Valid: false},
 		Fitness:  pqtype.NullRawMessage{RawMessage: data, Valid: false},
 	}

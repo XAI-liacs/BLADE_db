@@ -26,7 +26,6 @@ func TestHelperFunctionFilesAvailable(t *testing.T) {
 
 func TestBaseTableProblem(t *testing.T) {
 	state := config.GetContext("test")
-	// preTestClear(state)
 	file_names, err := get_file_names("test_files/problems")
 	if err != nil {
 		t.Fatalf("Cannot find problem files %s", err.Error())

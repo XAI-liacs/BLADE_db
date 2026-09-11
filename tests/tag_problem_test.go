@@ -117,3 +117,14 @@ func TestRelationTableTagProblemInsertion(t *testing.T) {
 		}
 	}
 }
+
+func TestRelationTableTagProblemRejectsUnknownIDs(t *testing.T) {
+	state := config.GetContext("test")
+	err := state.DB.CreateRunSolution(context.Background(), database.CreateRunSolutionParams{
+		RunID:      uuid.New(),
+		SolutionID: uuid.New(),
+	})
+	if err == nil {
+		t.Fatalf("DB accepted unknown keys.")
+	}
+}
