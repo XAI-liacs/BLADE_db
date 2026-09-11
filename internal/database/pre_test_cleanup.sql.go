@@ -63,6 +63,15 @@ func (q *Queries) ClearRun(ctx context.Context) error {
 	return err
 }
 
+const clearRunSolution = `-- name: ClearRunSolution :exec
+DELETE FROM run_solution
+`
+
+func (q *Queries) ClearRunSolution(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, clearRunSolution)
+	return err
+}
+
 const clearSolution = `-- name: ClearSolution :exec
 DELETE FROM solution
 `

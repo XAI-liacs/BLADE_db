@@ -24,3 +24,6 @@ DELETE FROM solution;
 
 -- name: ClearTagProblem :exec
 DELETE FROM tag_problem;
+
+-- name: ClearRunSolution :exec
+DELETE FROM run_solution;
