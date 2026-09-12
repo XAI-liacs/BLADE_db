@@ -27,3 +27,9 @@ DELETE FROM tag_problem;
 
 -- name: ClearRunSolution :exec
 DELETE FROM run_solution;
+
+-- name: ClearParentChild :exec
+DELETE FROM solution_parent_child;
+
+-- name: ClearExperimentRun :exec
+DELETE FROM experiment_run;
