@@ -28,6 +28,14 @@ func preTestClear(dbConfig config.State) error {
 		return err
 	}
 
+	if err := dbConfig.DB.ClearExperimentRun(ctx); err != nil {
+		return err
+	}
+
+	if err := dbConfig.DB.ClearParentChild(ctx); err != nil {
+		return err
+	}
+
 	if err := dbConfig.DB.ClearRunSolution(ctx); err != nil {
 		return err
 	}
