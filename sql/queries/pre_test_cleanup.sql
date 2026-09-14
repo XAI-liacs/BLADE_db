@@ -33,3 +33,9 @@ DELETE FROM solution_parent_child;
 
 -- name: ClearExperimentRun :exec
 DELETE FROM experiment_run;
+
+-- name: ClearMethodLLM :exec
+DELETE FROM method_llm;
+
+-- name: ClearConversationLog :exec
+DELETE FROM conversation_log;

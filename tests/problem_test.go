@@ -55,10 +55,13 @@ func TestBaseTableProblem(t *testing.T) {
 			Evaluator:    content["evaluator"].(string),
 			Config:       pqtype.NullRawMessage{RawMessage: data, Valid: len(data) > 0},
 		}
-		_, err = state.DB.CreateProblem(context.Background(), insertion)
+		id, err := state.DB.CreateProblem(context.Background(), insertion)
 		if err != nil {
-			if !strings.Contains(file_names[index], "Auto_corr_2_problem_2") { //Duplicate entry must fail.
-				t.Fatalf("Got error inserting %s: %s", file_names[index], err.Error())
+			t.Fatal(err.Error())
+		} else if strings.Contains(file_names[index], "Auto_corr_2_problem_2") { //Duplicate entry must fail.
+			if insertion.ID == id {
+				err_message := fmt.Sprintf("Update on file %s changed ID (diff: %s -> %s). Old id's not expected to diff.", file_name, insertion.ID, id)
+				t.Fatal(err_message)
 			}
 		} else {
 			insertions = append(insertions, insertion)

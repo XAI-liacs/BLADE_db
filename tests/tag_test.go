@@ -22,9 +22,14 @@ func TestBaseTableTag(t *testing.T) {
 		t.Fatalf("Unable to generate first tag: %s", err.Error())
 	}
 	inserted_tags = append(inserted_tags, tag)
-	_, err = state.DB.CreateTag(context.Background(), tag)
-	if err == nil {
-		t.Fatal("Same named tags were imported....")
+
+	dummy_tag := database.CreateTagParams{ID: uuid.New(), Tag: "Anna"}
+	id, err := state.DB.CreateTag(context.Background(), tag)
+	if err != nil {
+		t.Fatal("Got error while row clash, expected pre-exisitng row's id instead....")
+	}
+	if id == dummy_tag.ID {
+		t.Fatal("Inserting same tag mutated id of older tag.....")
 	}
 
 	// Insertions succeed.

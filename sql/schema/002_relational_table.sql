@@ -37,13 +37,20 @@ CREATE TABLE run_descriptor(
     CONSTRAINT run_descriptor_relation UNIQUE (run_id, method_id, problem_id)
 );
 
-CREATE TABLE conversation_log(
-    run_id UUID NOT NULL REFERENCES run(id),
+CREATE TABLE conversation_log (
+    run_id     UUID NOT NULL REFERENCES run(id),
     message_id UUID NOT NULL REFERENCES message(id),
-    method_id UUID NOT NULL REFERENCES method(id),
-    llm_id UUID NOT NULL REFERENCES llm(id),
-    created_at TIMESTAMP NOT NULL,
-    CONSTRAINT conversation_log_relation UNIQUE (run_id, message_id, method_id, llm_id, created_at)
+
+    method_id  UUID REFERENCES method(id),
+    llm_id     UUID REFERENCES llm(id),
+
+    created_at TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT conversation_log_one_actor
+        CHECK ((method_id IS NULL) <> (llm_id IS NULL)),
+
+    CONSTRAINT conversation_log_relation
+        UNIQUE NULLS NOT DISTINCT (run_id, message_id, method_id, llm_id, created_at)
 );
 
 -- +goose Down

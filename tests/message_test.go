@@ -17,14 +17,19 @@ func TestBaseTableMessage(t *testing.T) {
 	inserted_messages := make([]database.CreateMessageParams, 0)
 
 	message := database.CreateMessageParams{ID: uuid.New(), Message: "Hello, world"}
-	_, err := state.DB.CreateMessage(context.Background(), message)
+	id, err := state.DB.CreateMessage(context.Background(), message)
 	if err != nil {
 		t.Fatalf("Unable to generate first message: %s", err.Error())
 	}
 	inserted_messages = append(inserted_messages, message)
-	_, err = state.DB.CreateMessage(context.Background(), message)
-	if err == nil {
-		t.Fatal("Same messages were imported....")
+
+	message = database.CreateMessageParams{ID: uuid.New(), Message: "Hello, world"}
+	id, err = state.DB.CreateMessage(context.Background(), message)
+	if err != nil {
+		t.Fatal("Insertion of same message returned err; expected behaviour is to provide already existing row's message.id.")
+	}
+	if id == message.ID {
+		t.Fatal("Updating same row, mutated id to new id.")
 	}
 
 	// Insertions succeed.
@@ -43,10 +48,10 @@ func TestBaseTableMessage(t *testing.T) {
 	retrived_items, err := state.DB.GetMessages(context.Background())
 	for index, db_tag := range retrived_items {
 		if db_tag.ID != inserted_messages[index].ID {
-			t.Fatalf("Retrieved ID did not match inserted id %v\n\n%v", retrived_items, inserted_messages)
+			t.Fatalf("Retrieved ID did not match inserted id %v\t\n%v", retrived_items[index], inserted_messages[index])
 		}
 		if db_tag.Message != inserted_messages[index].Message {
-			t.Fatalf("Retrieved message did not match inserted message %v\n\n%v", retrived_items, inserted_messages)
+			t.Fatalf("Retrieved message did not match inserted message %v\t\n%v", retrived_items[index], inserted_messages[index])
 		}
 	}
 }

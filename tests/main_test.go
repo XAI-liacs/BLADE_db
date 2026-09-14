@@ -21,21 +21,24 @@ import (
 // Helper functions:
 
 func preTestClear(dbConfig config.State) error {
-	fmt.Println("=== Clearing all tables ===")
+	fmt.Println("\t=== Clearing all tables ===")
 	ctx := context.Background()
 	// Clear Relation Tables First.....
+	if err := dbConfig.DB.ClearConversationLog(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearMethodLLM(ctx); err != nil {
+		return err
+	}
 	if err := dbConfig.DB.ClearTagProblem(ctx); err != nil {
 		return err
 	}
-
 	if err := dbConfig.DB.ClearExperimentRun(ctx); err != nil {
 		return err
 	}
-
 	if err := dbConfig.DB.ClearParentChild(ctx); err != nil {
 		return err
 	}
-
 	if err := dbConfig.DB.ClearRunSolution(ctx); err != nil {
 		return err
 	}

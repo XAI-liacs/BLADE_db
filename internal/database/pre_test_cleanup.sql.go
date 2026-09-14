@@ -9,6 +9,15 @@ import (
 	"context"
 )
 
+const clearConversationLog = `-- name: ClearConversationLog :exec
+DELETE FROM conversation_log
+`
+
+func (q *Queries) ClearConversationLog(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, clearConversationLog)
+	return err
+}
+
 const clearExperiment = `-- name: ClearExperiment :exec
 DELETE FROM experiment
 `
@@ -51,6 +60,15 @@ DELETE FROM method
 
 func (q *Queries) ClearMethod(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, clearMethod)
+	return err
+}
+
+const clearMethodLLM = `-- name: ClearMethodLLM :exec
+DELETE FROM method_llm
+`
+
+func (q *Queries) ClearMethodLLM(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, clearMethodLLM)
 	return err
 }
 

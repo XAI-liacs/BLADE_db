@@ -16,8 +16,8 @@ import (
 type ConversationLog struct {
 	RunID     uuid.UUID
 	MessageID uuid.UUID
-	MethodID  uuid.UUID
-	LlmID     uuid.UUID
+	MethodID  uuid.NullUUID
+	LlmID     uuid.NullUUID
 	CreatedAt time.Time
 }
 

@@ -14,12 +14,13 @@ import (
 
 const createMethod = `-- name: CreateMethod :one
 INSERT INTO method (id, name, source, config)
-VALUES (
-    $1,
-    $2,
-    $3,
-    $4
-) RETURNING id
+VALUES ($1, $2, $3, $4)
+ON CONFLICT ON CONSTRAINT unique_method
+DO UPDATE SET
+    name = EXCLUDED.name,
+    source = EXCLUDED.source,
+    config = EXCLUDED.config
+RETURNING id
 `
 
 type CreateMethodParams struct {

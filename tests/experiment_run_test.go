@@ -97,3 +97,14 @@ func TestRelationTableExperimentRunInsertion(t *testing.T) {
 		}
 	}
 }
+
+func TestRelationTableExperimentRunFollowsForeignKeyPolicy(t *testing.T) {
+	state := config.GetContext("test")
+	err := state.DB.CreateExperimentRun(context.Background(), database.CreateExperimentRunParams{
+		ExperimentID: uuid.New(),
+		RunID:        uuid.New(),
+	})
+	if err == nil {
+		t.Fatal("Table `experiment_run`, doesn't follow foreign-key policy.")
+	}
+}

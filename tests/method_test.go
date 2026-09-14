@@ -5,26 +5,27 @@ import (
 	"anantashahane/BLADE_db/internal/database"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/google/uuid"
 )
 
-func TestBaseTabletMethod(t *testing.T) {
-	state := config.GetContext("test")
-	insertions := make([]database.CreateMethodParams, 0)
+func prepareMethod(state config.State) (insertions []database.CreateMethodParams, err error) {
+	insertions = make([]database.CreateMethodParams, 0)
 	// preTestClear(state)
 	files_content := make([]map[string]any, 0)
 	files, err := get_file_names("test_files/method")
 	if err != nil {
-		t.Fatal(err.Error())
+		return
 	}
 
 	for _, file := range files {
 		content, err := read_file(file)
 		if err != nil {
-			t.Fatal(err.Error())
+			return insertions, err
 		} else {
 			files_content = append(files_content, content)
 		}
@@ -34,7 +35,7 @@ func TestBaseTabletMethod(t *testing.T) {
 	for index, data := range files_content {
 		config, err := json.Marshal(data["config"])
 		if err != nil {
-			t.Fatalf("Unable to serialise config data: %s", err.Error())
+			return insertions, errors.New("Unable to serialise config data: " + err.Error())
 		}
 
 		row := database.CreateMethodParams{
@@ -43,34 +44,46 @@ func TestBaseTabletMethod(t *testing.T) {
 			Source: data["source"].(string),
 			Config: config,
 		}
-		_, err = state.DB.CreateMethod(context.Background(), row)
+		id, err := state.DB.CreateMethod(context.Background(), row)
 		if err != nil {
-			if !strings.Contains(files[index], "llamea2") { // Guard against duplication.
-				t.Fatalf("Unable to insert %v, into db: %s", row, err.Error())
+			err_message := fmt.Sprintf("Unable to insert %v into db: %s", row, err.Error())
+			return insertions, errors.New(err_message)
+		} else if strings.Contains(files[index], "llamea2") { // Guard against duplication.
+			if row.ID == id {
+				err_message := fmt.Sprintf("Update on file %s changed ID (diff: %s -> %s). Old id's not expected to diff.", files[index], row.ID, id)
+				return insertions, errors.New(err_message)
 			}
 		} else {
 			insertions = append(insertions, row)
 		}
+	}
+	return insertions, nil
+}
 
-		// Fetch check if data is inserted properly:
-		feteched_methods, err := state.DB.GetMethods(context.Background())
-		if err != nil {
-			t.Fatal("Unable to perform fetch on database..")
+func TestBaseTableMethod(t *testing.T) {
+	state := config.GetContext("test")
+	// Assert insertions don't allow copy of Methods.
+	insertions, err := prepareMethod(state)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	// Fetch check if data is inserted properly:
+	feteched_methods, err := state.DB.GetMethods(context.Background())
+	if err != nil {
+		t.Fatal("Unable to perform fetch on database..")
+	}
+	for index, fetched_method := range feteched_methods {
+		if insertions[index].ID != fetched_method.ID {
+			t.Fatalf("Mismatched ID: %s vs %s", insertions[index].ID.String(), fetched_method.ID.String())
 		}
-		for index, fetched_llm := range feteched_methods {
-			if insertions[index].ID != fetched_llm.ID {
-				t.Fatalf("Mismatched ID: %s vs %s", insertions[index].ID.String(), fetched_llm.ID.String())
-			}
-			if insertions[index].Name != fetched_llm.Name {
-				t.Fatalf("Mismatched Model: %s vs %s", insertions[index].Name, fetched_llm.Name)
-			}
-			if insertions[index].Source != fetched_llm.Source {
-				t.Fatalf("Mismatched Hardware: \n%s \nvs\n %s", insertions[index].Source, fetched_llm.Source)
-			}
-			if !isEqualJsonObjects(insertions[index].Config, fetched_llm.Config) {
-				t.Fatalf("Mismatched Config: \n%s \nvs\n %s", insertions[index].Config.String(), fetched_llm.Config.String())
-			}
+		if insertions[index].Name != fetched_method.Name {
+			t.Fatalf("Mismatched Model: %s vs %s", insertions[index].Name, fetched_method.Name)
+		}
+		if insertions[index].Source != fetched_method.Source {
+			t.Fatalf("Mismatched Hardware: \n%s \nvs\n %s", insertions[index].Source, fetched_method.Source)
+		}
+		if !isEqualJsonObjects(insertions[index].Config, fetched_method.Config) {
+			t.Fatalf("Mismatched Config: \n%s \nvs\n %s", insertions[index].Config.String(), fetched_method.Config.String())
 		}
 	}
-
 }
