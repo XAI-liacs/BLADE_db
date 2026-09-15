@@ -39,3 +39,6 @@ DELETE FROM method_llm;
 
 -- name: ClearConversationLog :exec
 DELETE FROM conversation_log;
+
+-- name: ClearRunDescriptor :exec
+DELETE FROM run_descriptor;

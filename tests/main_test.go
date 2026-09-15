@@ -24,6 +24,9 @@ func preTestClear(dbConfig config.State) error {
 	fmt.Println("\t=== Clearing all tables ===")
 	ctx := context.Background()
 	// Clear Relation Tables First.....
+	if err := dbConfig.DB.ClearRunDescriptor(ctx); err != nil {
+		return err
+	}
 	if err := dbConfig.DB.ClearConversationLog(ctx); err != nil {
 		return err
 	}

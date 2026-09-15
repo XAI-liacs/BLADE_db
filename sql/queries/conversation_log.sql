@@ -22,7 +22,7 @@ SELECT
     CASE
         WHEN cl.llm_id IS NOT NULL THEN cl.llm_id
         ELSE cl.method_id
-    END AS actor_id,
+    END::uuid AS actor_id,
 
     CASE
         WHEN cl.llm_id IS NOT NULL THEN 'llm'
