@@ -126,8 +126,11 @@ func Equal(
 func getRandomExperiment() database.CreateExperimentParams {
 	start_date := getRandomTime(time.Now())
 	end_date := getRandomTime(start_date)
+	experiment_name := []string{"Gravitation Wave Detection Aparatus Optimisation", "Steiner Tree Problem", "Auto-Correlation Inequality 3", "AutoML"}
+
 	return database.CreateExperimentParams{
 		ID:        uuid.New(),
+		Name:      experiment_name[rand.Intn(len(experiment_name))],
 		StartDate: start_date,
 		EndDate:   end_date}
 }

@@ -12,28 +12,30 @@ import (
 )
 
 const createRun = `-- name: CreateRun :one
-INSERT INTO run (id, seed)
+INSERT INTO run (id, name, seed)
 VALUES (
     $1,
-    $2
+    $2,
+    $3
 )
 RETURNING id
 `
 
 type CreateRunParams struct {
 	ID   uuid.UUID
+	Name string
 	Seed int32
 }
 
 func (q *Queries) CreateRun(ctx context.Context, arg CreateRunParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, createRun, arg.ID, arg.Seed)
+	row := q.db.QueryRowContext(ctx, createRun, arg.ID, arg.Name, arg.Seed)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
 }
 
 const getRuns = `-- name: GetRuns :many
-SELECT id, seed FROM run
+SELECT id, name, seed FROM run
 `
 
 func (q *Queries) GetRuns(ctx context.Context) ([]Run, error) {
@@ -45,7 +47,7 @@ func (q *Queries) GetRuns(ctx context.Context) ([]Run, error) {
 	var items []Run
 	for rows.Next() {
 		var i Run
-		if err := rows.Scan(&i.ID, &i.Seed); err != nil {
+		if err := rows.Scan(&i.ID, &i.Name, &i.Seed); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

@@ -4,6 +4,7 @@ import (
 	"anantashahane/BLADE_db/internal/config"
 	"anantashahane/BLADE_db/internal/database"
 	"context"
+	"fmt"
 	"math/rand"
 	"testing"
 
@@ -20,7 +21,7 @@ func TestBaseTableRun(t *testing.T) {
 	inserted_ids := make([]uuid.UUID, 0, 3)
 
 	for range 3 {
-		insertions = append(insertions, database.CreateRunParams{ID: uuid.New(), Seed: 1})
+		insertions = append(insertions, database.CreateRunParams{ID: uuid.New(), Name: "test", Seed: 1})
 		id, err := state.DB.CreateRun(context.Background(), insertions[len(insertions)-1])
 		if err != nil {
 			t.Fatalf("Insertion error: %s", err.Error())
@@ -36,7 +37,7 @@ func TestBaseTableRun(t *testing.T) {
 
 	// Test Run Get test works.
 	for i := range 3 {
-		insertions = append(insertions, database.CreateRunParams{ID: uuid.New(), Seed: int32(i + 10)})
+		insertions = append(insertions, database.CreateRunParams{ID: uuid.New(), Name: fmt.Sprintf("run_problem_soln_%d", i), Seed: int32(i + 10)})
 		id, err := state.DB.CreateRun(context.Background(), insertions[len(insertions)-1])
 		if err != nil {
 			t.Fatalf("Insertion error: %s", err.Error())

@@ -2,11 +2,13 @@
 
 CREATE TABLE run(
     id UUID PRIMARY KEY,
+    name TEXT NOT NULL,
     seed INT NOT NULL
 );
 
 CREATE TABLE experiment(
     id UUID PRIMARY KEY,
+    name TEXT NOT NULL,
     start_date TIMESTAMPTZ NOT NULL,
     end_date TIMESTAMPTZ NOT NULL
 );

@@ -1,8 +1,9 @@
 -- name: CreateRun :one
-INSERT INTO run (id, seed)
+INSERT INTO run (id, name, seed)
 VALUES (
     $1,
-    $2
+    $2,
+    $3
 )
 RETURNING id;
 

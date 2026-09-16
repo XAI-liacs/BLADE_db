@@ -1,9 +1,10 @@
 -- name: CreateExperiment :one
-INSERT INTO experiment (id, start_date, end_date)
+INSERT INTO experiment (id, name, start_date, end_date)
 VALUES (
     $1,
     $2,
-    $3
+    $3,
+    $4
 )
 RETURNING id;
 

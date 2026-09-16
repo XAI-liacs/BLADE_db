@@ -30,7 +30,7 @@ func (q *Queries) CreateExperimentRun(ctx context.Context, arg CreateExperimentR
 }
 
 const getRunsForExperiment = `-- name: GetRunsForExperiment :many
-SELECT  run.id, run.seed
+SELECT  run.id, run.name, run.seed
 FROM experiment_run er
 JOIN run
     ON run.id = er.run_id
@@ -46,7 +46,7 @@ func (q *Queries) GetRunsForExperiment(ctx context.Context, experimentID uuid.UU
 	var items []Run
 	for rows.Next() {
 		var i Run
-		if err := rows.Scan(&i.ID, &i.Seed); err != nil {
+		if err := rows.Scan(&i.ID, &i.Name, &i.Seed); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

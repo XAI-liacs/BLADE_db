@@ -23,6 +23,7 @@ type ConversationLog struct {
 
 type Experiment struct {
 	ID        uuid.UUID
+	Name      string
 	StartDate time.Time
 	EndDate   time.Time
 }
@@ -67,6 +68,7 @@ type Problem struct {
 
 type Run struct {
 	ID   uuid.UUID
+	Name string
 	Seed int32
 }
 

@@ -13,30 +13,37 @@ import (
 )
 
 const createExperiment = `-- name: CreateExperiment :one
-INSERT INTO experiment (id, start_date, end_date)
+INSERT INTO experiment (id, name, start_date, end_date)
 VALUES (
     $1,
     $2,
-    $3
+    $3,
+    $4
 )
 RETURNING id
 `
 
 type CreateExperimentParams struct {
 	ID        uuid.UUID
+	Name      string
 	StartDate time.Time
 	EndDate   time.Time
 }
 
 func (q *Queries) CreateExperiment(ctx context.Context, arg CreateExperimentParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, createExperiment, arg.ID, arg.StartDate, arg.EndDate)
+	row := q.db.QueryRowContext(ctx, createExperiment,
+		arg.ID,
+		arg.Name,
+		arg.StartDate,
+		arg.EndDate,
+	)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
 }
 
 const getExperiments = `-- name: GetExperiments :many
-SELECT id, start_date, end_date FROM experiment
+SELECT id, name, start_date, end_date FROM experiment
 `
 
 func (q *Queries) GetExperiments(ctx context.Context) ([]Experiment, error) {
@@ -48,7 +55,12 @@ func (q *Queries) GetExperiments(ctx context.Context) ([]Experiment, error) {
 	var items []Experiment
 	for rows.Next() {
 		var i Experiment
-		if err := rows.Scan(&i.ID, &i.StartDate, &i.EndDate); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.StartDate,
+			&i.EndDate,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
