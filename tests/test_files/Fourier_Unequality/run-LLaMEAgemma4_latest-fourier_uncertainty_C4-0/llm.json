@@ -1,0 +1,16 @@
+[
+    {
+        "model": "gemma4:latest",
+        "config": {
+            "port": 11434
+        },
+        "hardware": {
+            "cpu_name": "AMD Ryzen 5 7600X 6-Core Processor",
+            "gpu_name": "NVIDIA Corporation GB206 [GeForce RTX 5060 Ti] (rev a1)",
+            "memory": 31237.0,
+            "video_memory": 8151,
+            "cpu_core_count": 6,
+            "os_name": "Linux-7.0.10-arch1-1-x86_64-with-glibc2.43"
+        }
+    }
+]

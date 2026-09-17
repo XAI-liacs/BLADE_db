@@ -1,0 +1,10 @@
+{
+    "name": "LLaMEAgemma4:latest",
+    "source": "https://github.com/XAI-liacs/LLaMEA",
+    "config": {
+        "n_parents": 4,
+        "n_offspring": 4,
+        "elitism": true,
+        "budget": 10
+    }
+}

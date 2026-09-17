@@ -53,7 +53,6 @@ func TestFileHandlersMethodReadsFileProperly(t *testing.T) {
 	if content.Source != "https://github.com/XAI-liacs/LLaMEA" {
 		t.Fatal("Method source not right...")
 	}
-	fmt.Println(content)
 }
 
 func TestFileHandlersMethodFailsWithIncompatibleFile(t *testing.T) {
@@ -93,6 +92,88 @@ func TestFileHandlersProblemFailsWithIncompatibleFile(t *testing.T) {
 	}
 	problem := filehandlers.Problem{}
 	_, err := problem.Read(details)
+	if err == nil {
+		fmt.Println(problem)
+		t.Fatal("Incompatible file was read.")
+	}
+}
+
+func TestFileHandlersConversationLogReadsFileProperly(t *testing.T) {
+	details := filehandlers.FileDetails{
+		Root:   "./test_files/Fourier_Unequality/run-LLaMEAgemma4_latest-fourier_uncertainty_C4-0",
+		Suffix: "conversationlog.jsonl",
+	}
+
+	cl := filehandlers.ConversationLog{}
+	content, err := cl.Read(details)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if len(content) != 20 {
+		t.Fatalf("Not all rows imported, got total length %v, expected 20.", len(content))
+	}
+}
+
+func TestFileHandlersConversationLogFailsWithIncompatibleFile(t *testing.T) {
+	details := filehandlers.FileDetails{
+		Root:   "./test_files/method",
+		Suffix: "llamea.json",
+	}
+	cl := filehandlers.ConversationLog{}
+	_, err := cl.Read(details)
+	if err == nil {
+		t.Fatal("Incompatible file was read.")
+	}
+}
+
+func TestFileHandlersSolutionLogReadsFileProperly(t *testing.T) {
+	details := filehandlers.FileDetails{
+		Root:   "./test_files/Fourier_Unequality/run-LLaMEAgemma4_latest-fourier_uncertainty_C4-0",
+		Suffix: "log.jsonl",
+	}
+
+	sl := filehandlers.SolutionLog{}
+	content, err := sl.Read(details)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if len(content) != 10 {
+		t.Fatalf("Not all rows imported, got total length %v, expected 10.", len(content))
+	}
+}
+
+func TestFileHandlersSolutionLogFailsWithIncompatibleFile(t *testing.T) {
+	details := filehandlers.FileDetails{
+		Root:   "./test_files/method",
+		Suffix: "llamea.json",
+	}
+	sl := filehandlers.SolutionLog{}
+	_, err := sl.Read(details)
+	if err == nil {
+		t.Fatal("Incompatible file was read.")
+	}
+}
+
+func TestFileHandlersProgressReadsFileProperly(t *testing.T) {
+	details := filehandlers.FileDetails{
+		Root:   "./test_files/Fourier_Unequality",
+		Suffix: "progress.json",
+	}
+
+	p := filehandlers.Progress{}
+	_, err := p.Read(details)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+}
+
+func TestFileHandlersProgressFailsWithIncompatibleFile(t *testing.T) {
+	details := filehandlers.FileDetails{
+		Root:   "./test_files/method",
+		Suffix: "llamea.json",
+	}
+	p := filehandlers.Progress{}
+	_, err := p.Read(details)
 	if err == nil {
 		t.Fatal("Incompatible file was read.")
 	}
