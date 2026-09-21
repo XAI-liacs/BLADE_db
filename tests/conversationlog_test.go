@@ -4,6 +4,7 @@ import (
 	"anantashahane/BLADE_db/internal/config"
 	"anantashahane/BLADE_db/internal/database"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"math/rand/v2"
@@ -86,9 +87,11 @@ func createConversationLogRow(run database.CreateRunParams,
 	started_at time.Time) (conversation []conversationLog) {
 	messages := simulateConversation(50)
 	for index, message := range messages {
+		hash := sha256.Sum256([]byte(message))
 		message_obj := database.CreateMessageParams{
 			ID:      uuid.New(),
 			Message: message,
+			Hash:    hash[:],
 		}
 		if index%2 == 0 {
 			conversation_row := conversationLog{
@@ -114,7 +117,7 @@ func createConversationLogRow(run database.CreateRunParams,
 }
 
 func createConversationLogInstance(run_number int32) []conversationLog {
-	methods := make([]string, 2, 2)
+	methods := make([]string, 2)
 	// log := make([]conversationLog, 0)
 	methods[0] = "LLaMEA"
 	methods[1] = "MCTS-AHD"

@@ -44,6 +44,7 @@ type Llm struct {
 type Message struct {
 	ID      uuid.UUID
 	Message string
+	Hash    []byte
 }
 
 type Method struct {

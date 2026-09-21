@@ -4,8 +4,10 @@ import (
 	"anantashahane/BLADE_db/internal/config"
 	"anantashahane/BLADE_db/internal/database"
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -256,7 +258,7 @@ func ImportProblems(path_descriptor FileDetails, state config.State, db_scratch_
  * - `db_scratch_pad: context.Context`: Allows for cancellable update of the database, if an error is encountered, context.cancel().
  *
  * ## Returns
- * - `solution_ids: []ID_Mapping` for all future references.
+ * - `method_id_mapping: ID_Mapping` for all future references.
  */
 
 func ImportMethod(path_descriptor FileDetails, state config.State, db_scratch_pad context.Context) (method_id_mapping ID_Mapping, err error) {
@@ -275,4 +277,123 @@ func ImportMethod(path_descriptor FileDetails, state config.State, db_scratch_pa
 		DatabaseID: method_id,
 	}
 	return method_id_mapping, nil
+}
+
+/*
+ * Imports llms under a directory. Updates method table, while returning the associated db ids.
+ *
+ * ## Args
+ *
+ * - `path_descriptor : FileDetails`: Path to the root of the run, with Suffix=llm.json.
+ * - `state: State struct`: Contains db related functions.
+ * - `db_scratch_pad: context.Context`: Allows for cancellable update of the database, if an error is encountered, context.cancel().
+ *
+ * ## Returns
+ * - `llm_id_mappings: map[sting]ID_Mapping` for all future references (llm_model_name -> db_uuid mapping)
+ */
+
+func ImportLLM(path_descriptor FileDetails, state config.State, db_scratch_pad context.Context) (llm_id_mappings map[string]ID_Mapping, err error) {
+	l := LLM{}
+	llm_id_mappings = make(map[string]ID_Mapping)
+	llm_content, err := l.Read(path_descriptor)
+	if err != nil {
+		return
+	}
+	for _, llm := range llm_content {
+		llm_id, err := state.DB.CreateLLM(db_scratch_pad, llm)
+		if err != nil {
+			return llm_id_mappings, err
+		}
+		llm_id_mappings[llm.Model] = ID_Mapping{
+			FileID:     llm.ID,
+			DatabaseID: llm_id,
+		}
+	}
+	return llm_id_mappings, nil
+}
+
+/*
+ * Imports conversationlog under a run directory. Updates messages, conversation_log.
+ *
+ * ## Args
+ *
+ * - `path_descriptor : FileDetails`: Path to the root of the run, with Suffix=conversationlog.json.
+ * - `run_id: uuid.UUID`: database id of run table for associate run log.
+ * - `method_id: uuid.UUID`: database id of method table for associate run log.
+ * - `llm_lookup: map[string]uuid.UUID`: llm.model -> llm.id mapping for database id of llms table for associate run log.
+ * - `state: State struct`: Contains db related functions.
+ * - `db_scratch_pad: context.Context`: Allows for cancellable update of the database, if an error is encountered, context.cancel().
+ *
+ * ## Returns
+ * - `llm_id_mappings: []ID_Mapping` for all future references.
+ */
+
+func ImportConversationLog(path_descriptor FileDetails, run_id, method_id uuid.UUID, llm_lookup map[string]ID_Mapping, state config.State, db_scratch_pad context.Context) (err error) {
+	cl := ConversationLog{}
+	conversation_data, err := cl.Read(path_descriptor)
+	if err != nil {
+		return err
+	}
+
+	for index, chat_message := range conversation_data {
+		hash := sha256.Sum256([]byte(chat_message.Content))
+		message_id, err := state.DB.CreateMessage(db_scratch_pad, database.CreateMessageParams{
+			ID:      uuid.New(),
+			Message: chat_message.Content,
+			Hash:    hash[:],
+		})
+		conversation_data[index].Database_ID = message_id
+		if err != nil {
+			return err
+		}
+	}
+	for _, chat_message := range conversation_data {
+		role_id := uuid.Nil
+		if chat_message.Role == "client" {
+			role_id = method_id
+		} else {
+			llm_id, ok := llm_lookup[chat_message.Role]
+			if !ok {
+				return errors.New(chat_message.Role + " not int llm map: " + fmt.Sprintf("%v", llm_lookup))
+			}
+			role_id = llm_id.DatabaseID
+		}
+		row := database.CreateConversationLogParams{
+			RunID:     run_id,
+			MessageID: chat_message.Database_ID,
+			MethodID:  uuid.NullUUID{UUID: role_id, Valid: chat_message.Role == "client"},
+			LlmID:     uuid.NullUUID{UUID: role_id, Valid: chat_message.Role != "client"},
+			CreatedAt: chat_message.Time.Time,
+		}
+		err = state.DB.CreateConversationLog(db_scratch_pad, row)
+		if err != nil {
+			return fmt.Errorf("Unable to insert %v into conversation_log, error: %s", row, err.Error())
+		}
+	}
+	return nil
+}
+
+// Once Methods and LLM tables are updated, connect them.
+func ConnectMethodLLMs(method_id_mapping ID_Mapping, llm_id_mappings []ID_Mapping, state config.State, db_scratch_pad context.Context) (err error) {
+	for _, llm := range llm_id_mappings {
+		err = state.DB.CreateMethodLLM(db_scratch_pad, database.CreateMethodLLMParams{
+			MethodID: method_id_mapping.DatabaseID,
+			LlmID:    llm.DatabaseID,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Once method, problem and run are imported, connect them in run_descriptor table.
+
+func ConnectRunDescriptor(run_id, method_id, problem_id uuid.UUID, state config.State, db_scratch_pad context.Context) (err error) {
+	err = state.DB.CreateRunDescriptor(db_scratch_pad, database.CreateRunDescriptorParams{
+		RunID:     run_id,
+		MethodID:  method_id,
+		ProblemID: problem_id,
+	})
+	return nil
 }

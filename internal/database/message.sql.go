@@ -12,9 +12,9 @@ import (
 )
 
 const createMessage = `-- name: CreateMessage :one
-INSERT INTO message (id, message)
-    VALUES ($1, $2)
-    ON CONFLICT (message)
+INSERT INTO message (id, message, hash)
+    VALUES ($1, $2, $3)
+    ON CONFLICT (hash)
         DO UPDATE SET message = EXCLUDED.message
 RETURNING id
 `
@@ -22,17 +22,18 @@ RETURNING id
 type CreateMessageParams struct {
 	ID      uuid.UUID
 	Message string
+	Hash    []byte
 }
 
 func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, createMessage, arg.ID, arg.Message)
+	row := q.db.QueryRowContext(ctx, createMessage, arg.ID, arg.Message, arg.Hash)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
 }
 
 const getMessages = `-- name: GetMessages :many
-SELECT id, message FROM message
+SELECT id, message, hash FROM message
 `
 
 func (q *Queries) GetMessages(ctx context.Context) ([]Message, error) {
@@ -44,7 +45,7 @@ func (q *Queries) GetMessages(ctx context.Context) ([]Message, error) {
 	var items []Message
 	for rows.Next() {
 		var i Message
-		if err := rows.Scan(&i.ID, &i.Message); err != nil {
+		if err := rows.Scan(&i.ID, &i.Message, &i.Hash); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

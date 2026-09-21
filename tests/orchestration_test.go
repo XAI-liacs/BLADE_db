@@ -4,6 +4,7 @@ import (
 	filehandlers "anantashahane/BLADE_db/file_handlers"
 	"anantashahane/BLADE_db/internal/config"
 	"context"
+	"path/filepath"
 	"slices"
 	"testing"
 
@@ -174,5 +175,142 @@ func TestOrchestrationStoresMethod(t *testing.T) {
 	if method_mapping1.DatabaseID != method_mapping2.DatabaseID {
 		t.Fatal("New id was created for same method.")
 	}
+}
 
+func TestOrchestrationStoresLLM(t *testing.T) {
+	state := config.GetContext("test")
+	preTestClear(state)
+	db_scratch_pad := context.Background()
+
+	path_descriptor := filehandlers.FileDetails{
+		Root:   "./test_files/Erdös_Min_Overlap/run-LLaMEA-gemma4:latest-erdos_min_overlap-0",
+		Suffix: "llm.json",
+	}
+	llm_mappings, err := filehandlers.ImportLLM(path_descriptor, state, db_scratch_pad)
+	if err != nil {
+		t.Fatalf("Unable to insert method first time: %v", err)
+	}
+	llm_mappings2, err := filehandlers.ImportLLM(path_descriptor, state, db_scratch_pad)
+	if err != nil {
+		t.Fatalf("Unable to insert method second time: %v", err)
+	}
+	for index, _ := range llm_mappings {
+		if llm_mappings[index].DatabaseID != llm_mappings2[index].DatabaseID {
+			t.Fatal("New id was created for same method.")
+		}
+	}
+}
+
+func TestOrchestrationConnectsLLMsMethod(t *testing.T) {
+	state := config.GetContext("test")
+	preTestClear(state)
+	db_scratch_pad := context.Background()
+
+	path_descriptor := filehandlers.FileDetails{
+		Root:   "./test_files/Erdös_Min_Overlap/run-LLaMEA-gemma4:latest-erdos_min_overlap-0",
+		Suffix: "method.json",
+	}
+	method_mapping, err := filehandlers.ImportMethod(path_descriptor, state, db_scratch_pad)
+
+	path_descriptor = filehandlers.FileDetails{
+		Root:   "./test_files/Erdös_Min_Overlap/run-LLaMEA-gemma4:latest-erdos_min_overlap-0",
+		Suffix: "llm.json",
+	}
+	llm_mappings, err := filehandlers.ImportLLM(path_descriptor, state, db_scratch_pad)
+	if err != nil {
+		t.Fatalf("Unable to insert method: %v", err)
+	}
+	llms := make([]filehandlers.ID_Mapping, 0)
+	for _, v := range llm_mappings {
+		llms = append(llms, v)
+	}
+	err = filehandlers.ConnectMethodLLMs(method_mapping, llms, state, db_scratch_pad)
+	if err != nil {
+		t.Fatal("Unable to connect Method with LLM: " + err.Error())
+	}
+	// Multi-llm to one method.
+	path_descriptor = filehandlers.FileDetails{
+		Root:   "./test_files/Erdös_Min_Overlap/run-LLaMEA-llama3.2:latest-erdos_min_overlap-0",
+		Suffix: "llm.json",
+	}
+	llm_mappings, err = filehandlers.ImportLLM(path_descriptor, state, db_scratch_pad)
+	if err != nil {
+		t.Fatalf("Unable to insert method: %v", err)
+	}
+	llms = make([]filehandlers.ID_Mapping, 0)
+	for _, v := range llm_mappings {
+		llms = append(llms, v)
+	}
+
+	err = filehandlers.ConnectMethodLLMs(method_mapping, llms, state, db_scratch_pad)
+	if err != nil {
+		t.Fatal("Unable to connect Method with second LLM: " + err.Error())
+	}
+}
+
+func TestOrchestrationImportRunDescriptor(t *testing.T) {
+	state := config.GetContext("test")
+	preTestClear(state)
+	db_scratch_pad := context.Background()
+
+	path_descriptor := filehandlers.FileDetails{
+		Root:   "./test_files/Erdös_Min_Overlap/",
+		Suffix: "progress.json",
+	}
+
+	progress_data, err := filehandlers.ImportProgress(path_descriptor.Root, state, db_scratch_pad)
+	if err != nil {
+		t.Fatal("Unable to import progress: " + err.Error())
+	}
+
+	for path, run_data := range progress_data.RunData {
+		path_descriptor.Root = path
+		path_descriptor.Suffix = "method.json"
+		method_data, err := filehandlers.ImportMethod(path_descriptor, state, db_scratch_pad)
+		if err != nil {
+			t.Fatalf("Error importing method in %s, err: %s", filepath.Join(path_descriptor.Root, path_descriptor.Suffix), err.Error())
+		}
+		path_descriptor.Suffix = "problem.json"
+		problem_data, err := filehandlers.ImportProblems(path_descriptor, state, db_scratch_pad)
+		if err != nil {
+			t.Fatalf("Error importing problem in %s, err: %s", filepath.Join(path_descriptor.Root, path_descriptor.Suffix), err.Error())
+		}
+		err = filehandlers.ConnectRunDescriptor(run_data.DatabaseID, method_data.DatabaseID, problem_data.ProblemIdentifier.DatabaseID, state, db_scratch_pad)
+		if err != nil {
+			t.Fatalf("Error connecting descriptor err: %s", err.Error())
+		}
+	}
+}
+
+func TestOrchestrationImportConversationLog(t *testing.T) {
+	state := config.GetContext("test")
+	preTestClear(state)
+	db_scratch_pad := context.Background()
+
+	path_descriptor := filehandlers.FileDetails{
+		Root:   "./test_files/Erdös_Min_Overlap/",
+		Suffix: "conversationlog.json",
+	}
+	progress_data, err := filehandlers.ImportProgress(path_descriptor.Root, state, db_scratch_pad)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for run_path, run := range progress_data.RunData {
+		path_descriptor.Root = run_path
+		path_descriptor.Suffix = "method.json"
+		method_id, err := filehandlers.ImportMethod(path_descriptor, state, db_scratch_pad)
+		if err != nil {
+			t.Fatal(err)
+		}
+		path_descriptor.Suffix = "llm.json"
+		llms, err := filehandlers.ImportLLM(path_descriptor, state, db_scratch_pad)
+		if err != nil {
+			t.Fatal(err)
+		}
+		path_descriptor.Suffix = "conversationlog.jsonl"
+		err = filehandlers.ImportConversationLog(path_descriptor, run.DatabaseID, method_id.DatabaseID, llms, state, db_scratch_pad)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
 }

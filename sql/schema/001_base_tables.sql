@@ -50,7 +50,8 @@ CREATE TABLE method(
 
 CREATE TABLE message(
     id UUID PRIMARY KEY,
-    message TEXT UNIQUE NOT NULL
+    message TEXT NOT NULL,
+    hash BYTEA UNIQUE NOT NULL
 );
 
 CREATE TABLE llm(

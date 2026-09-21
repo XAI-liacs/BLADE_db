@@ -279,11 +279,12 @@ func (p Problem) Read(file_details FileDetails) (content ReadProblemContent, err
 
 // Struct to parse ConversationLog.jsonl files.
 type ConversationLog struct {
-	Role    string     `json:"role"`
-	Time    CustomTime `json:"time"`
-	Content string     `json:"content"`
-	Cost    float32    `json:"cost"`
-	Tokens  int        `json:"tokens"`
+	Role        string     `json:"role"`
+	Time        CustomTime `json:"time"`
+	Content     string     `json:"content"`
+	Cost        float32    `json:"cost"`
+	Tokens      int        `json:"tokens"`
+	Database_ID uuid.UUID  `json:"id,omitempty"`
 }
 
 /*
@@ -310,7 +311,7 @@ func (cl ConversationLog) Read(file_details FileDetails) (content []Conversation
 			return content, errors.New("Incorrectly parsed data.")
 		}
 	}
-	return
+	return content, nil
 }
 
 // Struct to parse log.jsonl files.
