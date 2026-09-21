@@ -34,6 +34,7 @@ func TestBaseTableProblem(t *testing.T) {
 	insertions := make([]database.CreateProblemParams, 0, 3)
 	configs := make([]map[string]any, 0)
 	for index, file_name := range file_names {
+		fmt.Println(file_name)
 		content, err := read_file(file_name)
 		if err != nil {
 			t.Fatal(err.Error())
@@ -50,6 +51,7 @@ func TestBaseTableProblem(t *testing.T) {
 		insertion := database.CreateProblemParams{
 			ID:           uuid.New(),
 			Name:         content["name"].(string),
+			Hash:         content["hash"].(string),
 			Prompt:       content["prompt"].(string),
 			Minimisation: content["minimisation"].(bool),
 			Evaluator:    content["evaluator"].(string),

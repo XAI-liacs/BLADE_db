@@ -14,6 +14,7 @@ import (
 )
 
 func prepareMethod(state config.State) (insertions []database.CreateMethodParams, err error) {
+	insertions_map := make(map[uuid.UUID]database.CreateMethodParams)
 	insertions = make([]database.CreateMethodParams, 0)
 	// preTestClear(state)
 	files_content := make([]map[string]any, 0)
@@ -41,10 +42,12 @@ func prepareMethod(state config.State) (insertions []database.CreateMethodParams
 		row := database.CreateMethodParams{
 			ID:     uuid.New(),
 			Name:   data["name"].(string),
+			Hash:   data["hash"].(string),
 			Source: data["source"].(string),
 			Config: config,
 		}
 		id, err := state.DB.CreateMethod(context.Background(), row)
+		insertions_map[id] = row
 		if err != nil {
 			err_message := fmt.Sprintf("Unable to insert %v into db: %s", row, err.Error())
 			return insertions, errors.New(err_message)
@@ -56,6 +59,9 @@ func prepareMethod(state config.State) (insertions []database.CreateMethodParams
 		} else {
 			insertions = append(insertions, row)
 		}
+	}
+	for _, value := range insertions_map {
+		insertions = append(insertions, value)
 	}
 	return insertions, nil
 }

@@ -13,8 +13,8 @@ import (
 )
 
 const createProblem = `-- name: CreateProblem :one
-INSERT INTO problem (id, name, prompt, evaluator, minimisation, config)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO problem (id, name, hash, prompt, evaluator, minimisation, config)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 ON CONFLICT ON CONSTRAINT unique_problem
 DO UPDATE SET
     name = EXCLUDED.name,
@@ -28,6 +28,7 @@ RETURNING id
 type CreateProblemParams struct {
 	ID           uuid.UUID
 	Name         string
+	Hash         string
 	Prompt       string
 	Evaluator    string
 	Minimisation bool
@@ -38,6 +39,7 @@ func (q *Queries) CreateProblem(ctx context.Context, arg CreateProblemParams) (u
 	row := q.db.QueryRowContext(ctx, createProblem,
 		arg.ID,
 		arg.Name,
+		arg.Hash,
 		arg.Prompt,
 		arg.Evaluator,
 		arg.Minimisation,
@@ -49,7 +51,7 @@ func (q *Queries) CreateProblem(ctx context.Context, arg CreateProblemParams) (u
 }
 
 const getProblems = `-- name: GetProblems :many
-SELECT id, name, prompt, evaluator, minimisation, config FROM problem
+SELECT id, name, hash, prompt, evaluator, minimisation, config FROM problem
 `
 
 func (q *Queries) GetProblems(ctx context.Context) ([]Problem, error) {
@@ -64,6 +66,7 @@ func (q *Queries) GetProblems(ctx context.Context) ([]Problem, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
+			&i.Hash,
 			&i.Prompt,
 			&i.Evaluator,
 			&i.Minimisation,

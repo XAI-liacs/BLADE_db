@@ -14,8 +14,8 @@ import (
 )
 
 const createLLM = `-- name: CreateLLM :one
-INSERT INTO llm (id, model, hardware, config)
-VALUES ($1, $2, $3, $4)
+INSERT INTO llm (id, model, hash, hardware, config)
+VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT ON CONSTRAINT unique_llm
 DO UPDATE SET
     model = EXCLUDED.model,
@@ -27,6 +27,7 @@ RETURNING id
 type CreateLLMParams struct {
 	ID       uuid.UUID
 	Model    string
+	Hash     string
 	Hardware pqtype.NullRawMessage
 	Config   json.RawMessage
 }
@@ -35,6 +36,7 @@ func (q *Queries) CreateLLM(ctx context.Context, arg CreateLLMParams) (uuid.UUID
 	row := q.db.QueryRowContext(ctx, createLLM,
 		arg.ID,
 		arg.Model,
+		arg.Hash,
 		arg.Hardware,
 		arg.Config,
 	)
@@ -44,7 +46,7 @@ func (q *Queries) CreateLLM(ctx context.Context, arg CreateLLMParams) (uuid.UUID
 }
 
 const getLLMs = `-- name: GetLLMs :many
-SELECT id, model, hardware, config FROM llm
+SELECT id, model, hash, hardware, config FROM llm
 `
 
 func (q *Queries) GetLLMs(ctx context.Context) ([]Llm, error) {
@@ -59,6 +61,7 @@ func (q *Queries) GetLLMs(ctx context.Context) ([]Llm, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Model,
+			&i.Hash,
 			&i.Hardware,
 			&i.Config,
 		); err != nil {

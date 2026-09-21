@@ -21,18 +21,12 @@ CREATE TABLE tag(
 CREATE TABLE problem (
     id UUID PRIMARY KEY,
     name TEXT NOT NULL,
+    hash TEXT NOT NULL,
     prompt TEXT NOT NULL,
     evaluator TEXT NOT NULL,
     minimisation BOOL NOT NULL,
     config JSONB,
-    CONSTRAINT unique_problem
-        UNIQUE NULLS NOT DISTINCT (
-            name,
-            prompt,
-            evaluator,
-            minimisation,
-            config
-        )
+    CONSTRAINT unique_problem UNIQUE (hash)
 );
 
 CREATE TABLE solution(
@@ -48,14 +42,10 @@ CREATE TABLE solution(
 CREATE TABLE method(
     id UUID PRIMARY KEY,
     name TEXT NOT NULL,
+    hash TEXT NOT NULL,
     source TEXT NOT NULL,
     config JSONB NOT NULL,
-    CONSTRAINT unique_method
-        UNIQUE NULLS NOT DISTINCT (
-            name,
-            source,
-            config
-        )
+    CONSTRAINT unique_method UNIQUE(hash)
 );
 
 CREATE TABLE message(
@@ -66,14 +56,10 @@ CREATE TABLE message(
 CREATE TABLE llm(
     id UUID PRIMARY KEY,
     model TEXT NOT NULL,
+    hash TEXT NOT NULL,
     hardware JSONB,
     config JSONB NOT NULL,
-    CONSTRAINT unique_llm
-        UNIQUE NULLS NOT DISTINCT (
-            model,
-            hardware,
-            config
-        )
+    CONSTRAINT unique_llm UNIQUE(hash)
 );
 
 -- +goose Down

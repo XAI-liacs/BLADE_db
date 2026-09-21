@@ -36,6 +36,7 @@ type ExperimentRun struct {
 type Llm struct {
 	ID       uuid.UUID
 	Model    string
+	Hash     string
 	Hardware pqtype.NullRawMessage
 	Config   json.RawMessage
 }
@@ -48,6 +49,7 @@ type Message struct {
 type Method struct {
 	ID     uuid.UUID
 	Name   string
+	Hash   string
 	Source string
 	Config json.RawMessage
 }
@@ -60,6 +62,7 @@ type MethodLlm struct {
 type Problem struct {
 	ID           uuid.UUID
 	Name         string
+	Hash         string
 	Prompt       string
 	Evaluator    string
 	Minimisation bool

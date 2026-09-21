@@ -1,12 +1,1 @@
-{
-    "name": "MCTS_AHD",
-    "source": "https://github.com/XAI-liacs/BLADE/tree/main/iohblade/methods/mcts_ahd",
-    "config": {
-        "lambda_0": 0.1,
-        "alpha": 0.5,
-        "max_children": 5,
-        "expansion_factor": 2,
-        "budget": 200,
-        "minimisation": true
-    }
-}
+{"name":"MCTS_AHD","source":"https://github.com/XAI-liacs/BLADE/tree/main/iohblade/methods/mcts_ahd","config":{"lambda_0":0.1,"alpha":0.5,"max_children":5,"expansion_factor":2,"budget":10,"minimisation":false},"hash":"c9e15913c35a1223ef9cfb875411c0e3824011fbde8d5e312c811624054821d2"}

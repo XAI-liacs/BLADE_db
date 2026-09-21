@@ -45,6 +45,7 @@ func prepareTagAndProblem(state config.State) (tag_problem_relation []tagProblem
 		problem_id, err := state.DB.CreateProblem(context.Background(), database.CreateProblemParams{
 			ID:           uuid.New(),
 			Name:         content["name"].(string),
+			Hash:         content["hash"].(string),
 			Prompt:       content["prompt"].(string),
 			Evaluator:    content["evaluator"].(string),
 			Minimisation: content["minimisation"].(bool),

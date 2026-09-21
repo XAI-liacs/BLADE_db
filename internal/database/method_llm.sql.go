@@ -30,7 +30,7 @@ func (q *Queries) CreateMethodLLM(ctx context.Context, arg CreateMethodLLMParams
 }
 
 const getLLMsForMethod = `-- name: GetLLMsForMethod :many
-SELECT llm.id, llm.model, llm.hardware, llm.config
+SELECT llm.id, llm.model, llm.hash, llm.hardware, llm.config
 FROM method_llm ml
 JOIN llm
     ON llm.id = ml.llm_id
@@ -49,6 +49,7 @@ func (q *Queries) GetLLMsForMethod(ctx context.Context, methodID uuid.UUID) ([]L
 		if err := rows.Scan(
 			&i.ID,
 			&i.Model,
+			&i.Hash,
 			&i.Hardware,
 			&i.Config,
 		); err != nil {

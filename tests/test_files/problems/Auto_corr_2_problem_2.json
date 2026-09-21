@@ -1,8 +1,9 @@
 {
     "tags": [
-        "trends",
-        "analysis",
-        "time-series"
+        "black box optimisation",
+        "Analysis",
+        "Trends",
+        "time_series"
     ],
     "name": "Auto-Correlation 2",
     "prompt": "\n\nWrite a python class with function `__call__`, that returns a list of floats f of length N.\n- Where N is number of bins over [-1/4, 1/4] with discretization of dx = 0.5 / N.\n- Auto-convolution of `g = dx * conv(f, f, mode=\"full\")`, where g lies in range [-1/2, 1/2].\n- Optimise for objective of minimize  -( ||f*f||_2^2 / ( ||f*f||_1 \u00b7 ||f*f||_\u221e ) ), where all entries in the list f must be greater than or equal to 0 and do not normalise the f, scaling does not change the score.\n- Symmetry or piecewise-constant structure is allowed if helpful.\n- Set N = 50 as default.\n\n\n\nAn example template of such program is given by:\n```python\nclass AutoCorreCandidate_2:\n\n    def __call__(self):\n        return [0,0]*50\n```\n\n\n\nGive an excellent and novel algorithm to solve this task and also give it a one-line description, describing the main idea. Give the response in the format:\n# Description: <short-description>\n# Code:\n```python\n<code>\n```\n\n",
@@ -18,5 +19,5 @@
         "imports": "import numpy as np\n",
         "n_bins": 50
     },
-  "id": "4670d4ae1c7c4e96bc651041a78371cf"
+    "hash": "b70d19a6384a1ab2e32e32d23370e93f6252bd900a5f9bb3164dc229afdf4510"
 }

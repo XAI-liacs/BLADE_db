@@ -31,17 +31,24 @@ func prepareRunDescriptorRequiredTables(state config.State) (run_descriptors []d
 	if err != nil {
 		return
 	}
-	problem_obj, err := prepareTagAndProblem(state)
+	_, err = prepareTagAndProblem(state)
 	if err != nil {
 		return
 	}
-	method_obj, err := prepareMethod(state)
+
+	problem_obj, err := state.DB.GetProblems(context.Background())
 	if err != nil {
 		return
 	}
+	_, err = prepareMethod(state)
+	method_obj, err := state.DB.GetMethods(context.Background())
+	if err != nil {
+		return
+	}
+
 	for run_index, run_id := range run_ids {
 		for i := 0; i <= run_index; i++ {
-			problem_id := problem_obj[rand.IntN(len(problem_obj))].problem_id
+			problem_id := problem_obj[i].ID
 			method_id := method_obj[rand.IntN(len(method_obj))].ID
 			run_descriptors = append(run_descriptors, database.CreateRunDescriptorParams{ProblemID: problem_id, MethodID: method_id, RunID: run_id})
 		}

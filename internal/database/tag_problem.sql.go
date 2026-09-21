@@ -17,6 +17,7 @@ VALUES (
     $1,
     $2
 )
+ON CONFLICT (tag_id, problem_id) DO NOTHING
 `
 
 type ConnectTagProblemParams struct {

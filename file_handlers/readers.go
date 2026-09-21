@@ -3,7 +3,6 @@ package filehandlers
 import (
 	"anantashahane/BLADE_db/internal/database"
 	"bufio"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -122,6 +121,7 @@ type FileDetails struct {
 // Struct to implement LLM,json parsing.
 type LLM struct {
 	Model    string         `json:"model"`
+	Hash     string         `json:"hash"`
 	Config   map[string]any `json:"config"`
 	Hardware map[string]any `json:"hardware,omitempty"`
 }
@@ -146,15 +146,11 @@ func (llm LLM) Read(file_details FileDetails) (content []database.CreateLLMParam
 	if err != nil {
 		return content, err
 	}
-	// for _, llm := range llms {
-	// 	if !containsKeys(dict, []string{"model", "config"}) {
-	// 		return content, errors.New("llm.json must contain model, config, and optional(hardware) keys.")
-	// 	}
-	// }
 	for _, llm_data := range llms {
 		row := database.CreateLLMParams{
 			ID:    uuid.New(),
 			Model: llm_data.Model,
+			Hash:  llm_data.Hash,
 		}
 
 		config, err := json.Marshal(llm_data.Config)
@@ -180,6 +176,7 @@ func (llm LLM) Read(file_details FileDetails) (content []database.CreateLLMParam
 type Method struct {
 	Name   string         `json:"name"`
 	Source string         `json:"source"`
+	Hash   string         `json:"hash"`
 	Config map[string]any `json:"config"`
 }
 
@@ -205,6 +202,7 @@ func (m Method) Read(file_details FileDetails) (content database.CreateMethodPar
 
 	content.ID = uuid.New()
 	content.Name = m.Name
+	content.Hash = m.Hash
 	content.Source = m.Source
 
 	config, err := json.Marshal(m.Config)
@@ -217,7 +215,7 @@ func (m Method) Read(file_details FileDetails) (content database.CreateMethodPar
 
 // Struct to implement Problem.json reader.
 type Problem struct {
-	ID           uuid.UUID      `json:"id"`
+	Hash         string         `json:"hash"`
 	Tags         []string       `json:"tags"`
 	Name         string         `json:"name"`
 	Prompt       string         `json:"prompt"`
@@ -260,11 +258,12 @@ func (p Problem) Read(file_details FileDetails) (content ReadProblemContent, err
 	problem := database.CreateProblemParams{
 		ID:           uuid.New(),
 		Name:         p.Name,
+		Hash:         p.Hash,
 		Prompt:       p.Prompt,
 		Minimisation: p.Minimisation,
 		Evaluator:    p.Evaluator,
 	}
-	if p.ID == uuid.Nil {
+	if p.Hash == "" {
 		return content, errors.New("Unable to parse problem file correctly.")
 	}
 
@@ -321,6 +320,7 @@ type SolutionLog struct {
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
 	Code        string         `json:"code"`
+	ParentIDs   []uuid.UUID    `json:"parent_ids"`
 	Generation  *int           `json:"generation,omitempty"`
 	Metadata    map[string]any `json:"metadata,omitempty"`
 }
@@ -337,19 +337,14 @@ Returns:
 - []CreateSolutionParams: A sqlc generated struct for db injection
 - err: error message if something went wrong.
 */
-func (sl SolutionLog) Read(file_details FileDetails) (content []database.CreateSolutionParams, err error) {
+func (sl SolutionLog) Read(file_details FileDetails) (content []SolutionLog, err error) {
 	path := filepath.Join(file_details.Root, file_details.Suffix)
-	content = make([]database.CreateSolutionParams, 0)
-	data := make([]SolutionLog, 0)
-	err = deserialiseFile(path, &data)
+	content = make([]SolutionLog, 0)
+	err = deserialiseFile(path, &content)
 	if err != nil {
 		return content, err
 	}
-	for _, sl := range data {
-		metadata_json, err := json.Marshal(sl.Metadata)
-		if err != nil {
-			return content, errors.New("Unable to marshal Metadata: " + err.Error())
-		}
+	for _, sl := range content {
 		fitness_map := make(map[string]any)
 		switch fitness := sl.Fitness.(type) {
 		case float64:
@@ -359,22 +354,7 @@ func (sl SolutionLog) Read(file_details FileDetails) (content []database.CreateS
 		case string:
 			fitness_map = map[string]any{}
 		}
-
-		fitness_json, err := json.Marshal(fitness_map)
-		if err != nil {
-			return content, errors.New("Unable to marshal Fitness: " + err.Error())
-		}
-
-		row := database.CreateSolutionParams{
-			ID:          sl.ID,
-			Name:        sql.NullString{String: sl.Name, Valid: sl.Name != ""},
-			Description: sql.NullString{String: sl.Description, Valid: sl.Description != ""},
-			Generation:  sql.NullInt32{Int32: int32(OptionalUnwrap(sl.Generation)), Valid: sl.Generation != nil},
-			Code:        sql.NullString{String: sl.Code, Valid: sl.Code != ""},
-			Metadata:    pqtype.NullRawMessage{RawMessage: metadata_json, Valid: len(metadata_json) > 0},
-			Fitness:     pqtype.NullRawMessage{RawMessage: fitness_json, Valid: len(fitness_json) > 0},
-		}
-		content = append(content, row)
+		sl.Fitness = fitness_map
 	}
 	return
 }

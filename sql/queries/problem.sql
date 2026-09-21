@@ -1,6 +1,6 @@
 -- name: CreateProblem :one
-INSERT INTO problem (id, name, prompt, evaluator, minimisation, config)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO problem (id, name, hash, prompt, evaluator, minimisation, config)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 ON CONFLICT ON CONSTRAINT unique_problem
 DO UPDATE SET
     name = EXCLUDED.name,

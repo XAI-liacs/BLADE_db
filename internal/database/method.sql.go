@@ -13,8 +13,8 @@ import (
 )
 
 const createMethod = `-- name: CreateMethod :one
-INSERT INTO method (id, name, source, config)
-VALUES ($1, $2, $3, $4)
+INSERT INTO method (id, name, hash, source, config)
+VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT ON CONSTRAINT unique_method
 DO UPDATE SET
     name = EXCLUDED.name,
@@ -26,6 +26,7 @@ RETURNING id
 type CreateMethodParams struct {
 	ID     uuid.UUID
 	Name   string
+	Hash   string
 	Source string
 	Config json.RawMessage
 }
@@ -34,6 +35,7 @@ func (q *Queries) CreateMethod(ctx context.Context, arg CreateMethodParams) (uui
 	row := q.db.QueryRowContext(ctx, createMethod,
 		arg.ID,
 		arg.Name,
+		arg.Hash,
 		arg.Source,
 		arg.Config,
 	)
@@ -43,7 +45,7 @@ func (q *Queries) CreateMethod(ctx context.Context, arg CreateMethodParams) (uui
 }
 
 const getMethods = `-- name: GetMethods :many
-SELECT id, name, source, config FROM method
+SELECT id, name, hash, source, config FROM method
 `
 
 func (q *Queries) GetMethods(ctx context.Context) ([]Method, error) {
@@ -58,6 +60,7 @@ func (q *Queries) GetMethods(ctx context.Context) ([]Method, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
+			&i.Hash,
 			&i.Source,
 			&i.Config,
 		); err != nil {

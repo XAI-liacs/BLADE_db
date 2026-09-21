@@ -1,16 +1,1 @@
-[
-    {
-        "model": "gemma4:latest",
-        "config": {
-            "port": 11434
-        },
-        "hardware": {
-            "cpu_name": "Intel(R) Xeon(R) Gold 6142 CPU @ 2.60GHz",
-            "gpu_name": "ASPEED Technology, Inc. ASPEED Graphics Family (rev 41)",
-            "memory": 257573.3,
-            "video_memory": 15360,
-            "cpu_core_count": 32,
-            "os_name": "Linux-5.15.0-163-generic-x86_64-with-glibc2.35"
-        }
-    }
-]
+[{"model":"gemma4:latest","config":{},"hardware":{"cpu_name":"AppleM4","gpu_name":"AppleM4","memory":16384.0,"video_memory":null,"cpu_core_count":10,"os_name":"macOS-27.0-arm64-arm-64bit-Mach-O"},"hash":"cac30573617fa84512a45de8cc6dcb25f9596c16b5ef688f71426b19060e3b73"}]

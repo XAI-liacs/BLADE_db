@@ -3,7 +3,9 @@ INSERT INTO tag_problem (tag_id, problem_id)
 VALUES (
     $1,
     $2
-);
+)
+ON CONFLICT (tag_id, problem_id) DO NOTHING
+;
 
 -- name: GetTagsforProblem :many
 SELECT tag.tag

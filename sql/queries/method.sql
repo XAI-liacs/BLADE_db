@@ -1,6 +1,6 @@
 -- name: CreateMethod :one
-INSERT INTO method (id, name, source, config)
-VALUES ($1, $2, $3, $4)
+INSERT INTO method (id, name, hash, source, config)
+VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT ON CONSTRAINT unique_method
 DO UPDATE SET
     name = EXCLUDED.name,

@@ -45,6 +45,7 @@ func prepareLLM(state config.State) (insertions []database.CreateLLMParams, err 
 		row := database.CreateLLMParams{
 			ID:       uuid.New(),
 			Model:    data["model"].(string),
+			Hash:     data["hash"].(string),
 			Hardware: pqtype.NullRawMessage{RawMessage: hardware, Valid: len(hardware) != 0},
 			Config:   config,
 		}
