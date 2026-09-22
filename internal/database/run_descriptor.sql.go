@@ -50,7 +50,7 @@ JOIN problem p
     ON p.id = rd.problem_id
 JOIN method m
     ON m.id = rd.method_id
-WHERE rd.problem_id = $1
+WHERE rd.run_id = $1
 `
 
 type GetMethodAndProblemForRunRow struct {
@@ -66,8 +66,8 @@ type GetMethodAndProblemForRunRow struct {
 	MethodConfig        json.RawMessage
 }
 
-func (q *Queries) GetMethodAndProblemForRun(ctx context.Context, problemID uuid.UUID) ([]GetMethodAndProblemForRunRow, error) {
-	rows, err := q.db.QueryContext(ctx, getMethodAndProblemForRun, problemID)
+func (q *Queries) GetMethodAndProblemForRun(ctx context.Context, runID uuid.UUID) ([]GetMethodAndProblemForRunRow, error) {
+	rows, err := q.db.QueryContext(ctx, getMethodAndProblemForRun, runID)
 	if err != nil {
 		return nil, err
 	}

@@ -11,6 +11,8 @@ import (
 type State struct {
 	// DB provides access to the application's database queries.
 	DB *database.Queries
+	// Database connector:
+	DB_pointer *sql.DB
 	// DB_Path contains the database connection URL used to initialize DB.
 	DB_Path string
 }
@@ -40,6 +42,6 @@ func GetContext(environment string) State {
 
 	dbQueries := database.New(db)
 
-	app_state := State{DB: dbQueries, DB_Path: dbURL}
+	app_state := State{DB: dbQueries, DB_pointer: db, DB_Path: dbURL}
 	return app_state
 }

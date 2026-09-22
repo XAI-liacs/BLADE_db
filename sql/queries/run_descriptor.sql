@@ -23,4 +23,4 @@ JOIN problem p
     ON p.id = rd.problem_id
 JOIN method m
     ON m.id = rd.method_id
-WHERE rd.problem_id = $1;
+WHERE rd.run_id = $1;

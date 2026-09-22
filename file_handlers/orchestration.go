@@ -43,13 +43,13 @@ type ProgressImportData struct {
  * ## Returns
  * - `progress_ids: ProgressImportData` for all future references.
  */
-func ImportProgress(project_path string, state config.State, db_scratch_pad context.Context) (progress_ids ProgressImportData, err error) {
+func ImportProgress(project_path string, state config.State, db_scratch_pad context.Context) (progress_info ProgressImportData, err error) {
 
 	// Step 1: Check if provided path is actually pwd for experiment (root dir must contain `progress.json`)
 	found_progress_json := false
 	files_in_directory, err := os.ReadDir(project_path)
 	if err != nil {
-		return progress_ids, err
+		return progress_info, err
 	}
 	for _, file := range files_in_directory {
 		if file.Name() == "progress.json" {
@@ -60,7 +60,7 @@ func ImportProgress(project_path string, state config.State, db_scratch_pad cont
 
 	if !found_progress_json {
 		file_name := filepath.Join(project_path, "progress")
-		return progress_ids, fmt.Errorf("File %v not found.", file_name)
+		return progress_info, fmt.Errorf("File %v not found.", file_name)
 	}
 
 	path_details := FileDetails{
@@ -72,41 +72,43 @@ func ImportProgress(project_path string, state config.State, db_scratch_pad cont
 	progress := Progress{}
 	progress_data, err := progress.Read(path_details)
 	if err != nil {
-		return progress_ids, err
+		return progress_info, err
 	}
 	// Add experiment into DB
 	id, err := state.DB.CreateExperiment(db_scratch_pad, progress_data.progressData)
 	if err != nil {
-		return progress_ids, err
+		return progress_info, err
 	}
 
-	progress_ids.Experiment = ID_Mapping{
+	progress_info.Experiment = ID_Mapping{
 		FileID:     progress_data.progressData.ID,
 		DatabaseID: id,
 	}
 
-	progress_ids.RunData = make(map[string]ID_Mapping)
+	progress_info.RunData = make(map[string]ID_Mapping)
 
 	// Injest runs.
 	for sub_directory, run := range progress_data.runData {
 		run_id, err := state.DB.CreateRun(db_scratch_pad, run)
 		if err != nil {
-			return progress_ids, err
+			return progress_info, err
 		}
-		absolute_path := filepath.Join(path_details.Root, sub_directory)
 		if err != nil {
-			return progress_ids, err
+			return progress_info, err
 		}
-		progress_ids.RunData[absolute_path] = ID_Mapping{
+
+		absolute_path := filepath.Join(path_details.Root, sub_directory)
+
+		progress_info.RunData[absolute_path] = ID_Mapping{
 			FileID:     run.ID,
 			DatabaseID: run_id,
 		}
 	}
 
 	// Join run with experiment:
-	for _, run_id := range progress_ids.RunData {
+	for _, run_id := range progress_info.RunData {
 		err = state.DB.CreateExperimentRun(db_scratch_pad, database.CreateExperimentRunParams{
-			ExperimentID: progress_ids.Experiment.DatabaseID,
+			ExperimentID: progress_info.Experiment.DatabaseID,
 			RunID:        run_id.DatabaseID,
 		})
 		if err != nil {
@@ -182,7 +184,7 @@ func ImportSolution(path_descriptor FileDetails, run_id uuid.UUID, state config.
 		for _, parent_id := range solution.ParentIDs {
 			db_pid := solution_id_mappings[parent_id]
 			db_child_id := solution_id_mappings[solution.ID]
-			state.DB.CreateParentChild(db_scratch_pad, database.CreateParentChildParams{
+			err = state.DB.CreateParentChild(db_scratch_pad, database.CreateParentChildParams{
 				ParentID: db_pid,
 				ChildID:  db_child_id,
 			})
@@ -211,7 +213,7 @@ type ProblemTag struct {
 	TagIdentifiers    map[string]ID_Mapping //Tag to problem_id
 }
 
-func ImportProblems(path_descriptor FileDetails, state config.State, db_scratch_pad context.Context) (problem_descriptor ProblemTag, err error) {
+func ImportProblem(path_descriptor FileDetails, state config.State, db_scratch_pad context.Context) (problem_descriptor ProblemTag, err error) {
 	p := Problem{}
 	problem_content, err := p.Read(path_descriptor)
 	if err != nil {
@@ -374,7 +376,7 @@ func ImportConversationLog(path_descriptor FileDetails, run_id, method_id uuid.U
 }
 
 // Once Methods and LLM tables are updated, connect them.
-func ConnectMethodLLMs(method_id_mapping ID_Mapping, llm_id_mappings []ID_Mapping, state config.State, db_scratch_pad context.Context) (err error) {
+func ConnectMethodLLMs(method_id_mapping ID_Mapping, llm_id_mappings map[string]ID_Mapping, state config.State, db_scratch_pad context.Context) (err error) {
 	for _, llm := range llm_id_mappings {
 		err = state.DB.CreateMethodLLM(db_scratch_pad, database.CreateMethodLLMParams{
 			MethodID: method_id_mapping.DatabaseID,
@@ -396,4 +398,136 @@ func ConnectRunDescriptor(run_id, method_id, problem_id uuid.UUID, state config.
 		ProblemID: problem_id,
 	})
 	return nil
+}
+
+// Put all of them together.
+// 1) Find all the progress.json files in given directory.
+// 2) Injest each of the experiments atomically.
+
+/*
+ * Complete import of the experiment, atomically..
+ *
+ * ## Args:
+ * 	- `for_path: string` Path for directory with `progress.json` in it's root.
+ *  - `env: string literal ['test' | 'deployment'], depending on wheter feature should work on test database, or production database.
+ *
+ * ## Returns:
+ * - `err: Err` Error encountered during import of the experiment, nil, if success.
+ */
+func ImportExperiment(for_path string, env string) (err error) {
+	state := config.GetContext(env)
+
+	db_scratch_pad := context.Background()
+
+	tx, err := state.DB_pointer.BeginTx(db_scratch_pad, nil)
+	if err != nil {
+		return errors.New("Unable to start transation: " + err.Error())
+	}
+	defer tx.Rollback()
+	state.DB = state.DB.WithTx(tx)
+
+	progress_info, err := ImportProgress(for_path, state, db_scratch_pad) // progress_id, map[run_path]run_id
+	if err != nil {
+		return fmt.Errorf("Unable to import progress at path %s, error: %s", for_path, err.Error())
+	}
+	for run_path, run_id := range progress_info.RunData {
+		path_descriptor := FileDetails{
+			Root:   run_path,
+			Suffix: "problem.json",
+		}
+		problem_descriptor, err := ImportProblem(
+			path_descriptor,
+			state,
+			db_scratch_pad)
+		if err != nil {
+			return fmt.Errorf("Unable to import problem at path %v, error: %s", path_descriptor, err.Error())
+		}
+
+		path_descriptor.Suffix = "llm.json"
+		llm_map, err := ImportLLM(
+			path_descriptor,
+			state,
+			db_scratch_pad)
+		if err != nil {
+			return fmt.Errorf("Unable to import llms from path %v, error: %s", path_descriptor, err.Error())
+		}
+
+		path_descriptor.Suffix = "method.json"
+		method_id, err := ImportMethod(
+			path_descriptor,
+			state,
+			db_scratch_pad)
+		if err != nil {
+			return fmt.Errorf("Unable to import method from path %v, error: %s", path_descriptor, err.Error())
+		}
+
+		path_descriptor.Suffix = "log.jsonl"
+		_, err = ImportSolution(
+			path_descriptor,
+			run_id.DatabaseID,
+			state,
+			db_scratch_pad)
+		if err != nil {
+			return fmt.Errorf("Unable to import solutions from path %v, error: %s", path_descriptor, err.Error())
+		}
+
+		path_descriptor.Suffix = "conversationlog.jsonl"
+		err = ImportConversationLog(
+			path_descriptor,
+			run_id.DatabaseID,
+			method_id.DatabaseID,
+			llm_map,
+			state,
+			db_scratch_pad)
+		if err != nil {
+			return fmt.Errorf("Unable to import conversationlog from path %v, error: %s", path_descriptor, err.Error())
+		}
+
+		err = ConnectMethodLLMs(
+			method_id,
+			llm_map,
+			state,
+			db_scratch_pad)
+		if err != nil {
+			return fmt.Errorf("Unable to populate method_llm table error: %s", err.Error())
+		}
+		err = ConnectRunDescriptor(
+			run_id.DatabaseID,
+			method_id.DatabaseID,
+			problem_descriptor.ProblemIdentifier.DatabaseID,
+			state,
+			db_scratch_pad)
+		if err != nil {
+			return fmt.Errorf("Unable to populate run_descriptor table error: %s", err.Error())
+		}
+	}
+	return tx.Commit()
+}
+
+/*
+ * Complete import of the multiple experiments under a directory, atomitcally..
+ *
+ * ## Args:
+ * 	- `for_path: string` Path for directory with `progress.json` in it's root.
+ *  - `env: string literal ['test' | 'deployment'], depending on wheter feature should work on test database, or production database.
+ *
+ * ## Returns:
+ * - `errs: []error` Errors encountered during import of the experiment, nil, if success.
+ */
+func ImportAllExperimentUnder(directory string, env string) (errs []error) {
+	path_regex := filepath.Join(directory, "*/progress.json")
+	projects, err := filepath.Glob(path_regex)
+	if err != nil {
+		return []error{err}
+	}
+
+	errs = make([]error, 0)
+
+	for _, project := range projects {
+		path := filepath.Dir(project)
+		if err = ImportExperiment(path, env); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errs
 }

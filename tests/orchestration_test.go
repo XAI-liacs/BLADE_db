@@ -135,12 +135,12 @@ func TestOrchestrationStoresProblem(t *testing.T) {
 		Suffix: "problem.json",
 	}
 
-	_, err := filehandlers.ImportProblems(path_descriptor, state, db_scratch_pad)
+	_, err := filehandlers.ImportProblem(path_descriptor, state, db_scratch_pad)
 	if err != nil {
 		t.Fatal("Unable to import problem first time: " + err.Error())
 	}
 	path_descriptor.Root = "./test_files/Erdös_Min_Overlap/run-LLaMEA-llama3.2:latest-erdos_min_overlap-0"
-	problem_descriptor, err := filehandlers.ImportProblems(path_descriptor, state, db_scratch_pad)
+	problem_descriptor, err := filehandlers.ImportProblem(path_descriptor, state, db_scratch_pad)
 	if err != nil {
 		t.Fatal("Unable to import problem second time: " + err.Error())
 	}
@@ -220,11 +220,8 @@ func TestOrchestrationConnectsLLMsMethod(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to insert method: %v", err)
 	}
-	llms := make([]filehandlers.ID_Mapping, 0)
-	for _, v := range llm_mappings {
-		llms = append(llms, v)
-	}
-	err = filehandlers.ConnectMethodLLMs(method_mapping, llms, state, db_scratch_pad)
+
+	err = filehandlers.ConnectMethodLLMs(method_mapping, llm_mappings, state, db_scratch_pad)
 	if err != nil {
 		t.Fatal("Unable to connect Method with LLM: " + err.Error())
 	}
@@ -237,12 +234,8 @@ func TestOrchestrationConnectsLLMsMethod(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to insert method: %v", err)
 	}
-	llms = make([]filehandlers.ID_Mapping, 0)
-	for _, v := range llm_mappings {
-		llms = append(llms, v)
-	}
 
-	err = filehandlers.ConnectMethodLLMs(method_mapping, llms, state, db_scratch_pad)
+	err = filehandlers.ConnectMethodLLMs(method_mapping, llm_mappings, state, db_scratch_pad)
 	if err != nil {
 		t.Fatal("Unable to connect Method with second LLM: " + err.Error())
 	}
@@ -271,7 +264,7 @@ func TestOrchestrationImportRunDescriptor(t *testing.T) {
 			t.Fatalf("Error importing method in %s, err: %s", filepath.Join(path_descriptor.Root, path_descriptor.Suffix), err.Error())
 		}
 		path_descriptor.Suffix = "problem.json"
-		problem_data, err := filehandlers.ImportProblems(path_descriptor, state, db_scratch_pad)
+		problem_data, err := filehandlers.ImportProblem(path_descriptor, state, db_scratch_pad)
 		if err != nil {
 			t.Fatalf("Error importing problem in %s, err: %s", filepath.Join(path_descriptor.Root, path_descriptor.Suffix), err.Error())
 		}
@@ -288,7 +281,7 @@ func TestOrchestrationImportConversationLog(t *testing.T) {
 	db_scratch_pad := context.Background()
 
 	path_descriptor := filehandlers.FileDetails{
-		Root:   "./test_files/Erdös_Min_Overlap/",
+		Root:   "tests/test_files/Erdös_Min_Overlap",
 		Suffix: "conversationlog.json",
 	}
 	progress_data, err := filehandlers.ImportProgress(path_descriptor.Root, state, db_scratch_pad)
@@ -312,5 +305,74 @@ func TestOrchestrationImportConversationLog(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		message_log, err := state.DB.GetConversationLog(db_scratch_pad, run.DatabaseID)
+		if len(message_log) != 20 {
+			t.Fatal("Not all messanges were imported.")
+		}
 	}
+}
+
+func TestCompleteInjestion(t *testing.T) {
+	path, err := filepath.Abs(".")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	path = filepath.Join(path, "/test_files/Erdös_Min_Overlap")
+
+	err = filehandlers.ImportExperiment(path, "test")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	// Check if commit succeeded.
+	state := config.GetContext("test")
+	exps, err := state.DB.GetExperiments(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(exps) == 0 {
+		t.Fatal("Experiment not imported.")
+	}
+	runs, err := state.DB.GetRuns(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(runs) != 2 {
+		t.Fatal("Not all runs imported.")
+	}
+	for _, run := range runs {
+		converation_log, err := state.DB.GetConversationLog(context.Background(), run.ID)
+		if err != nil {
+			t.Fatal("Cannot get conversation log for run: " + run.ID.String() + " error : " + err.Error())
+		}
+		if len(converation_log) != 20 {
+			t.Fatal("Not all conversation log imported.")
+		}
+		solutions, err := state.DB.GetSolutionsForRun(context.Background(), run.ID)
+		if err != nil {
+			t.Fatal("Cannot get solutions for run: " + run.ID.String() + " error : " + err.Error())
+		}
+		if len(solutions) != 10 {
+			t.Fatal("Not all solutions imported.")
+		}
+		problem_methods, err := state.DB.GetMethodAndProblemForRun(context.Background(), run.ID)
+		if err != nil {
+			t.Fatal("Cannot get problem_method for run: " + run.ID.String() + " error : " + err.Error())
+		}
+		if len(problem_methods) != 1 {
+			t.Fatal("Not all methods / problems imported.")
+		}
+		for _, pm := range problem_methods {
+			llm, err := state.DB.GetLLMsForMethod(context.Background(), pm.MethodID)
+			if err != nil {
+				t.Fatal(err.Error())
+			}
+			if len(llm) == 0 {
+				t.Fatal("Cannot get connection between method and llm.")
+			}
+		}
+	}
+}
+
+func TestCompleteMultiInjestion(t *testing.T) {
+	filehandlers.ImportAllExperimentUnder("./test_files", "test")
 }
