@@ -1,7 +1,7 @@
 package tests
 
 import (
-	filehandlers "anantashahane/BLADE_db/file_handlers"
+	filehandlers "XAI-liacs/BLADE_db/file_handlers"
 	"fmt"
 	"testing"
 )

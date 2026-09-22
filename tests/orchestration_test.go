@@ -1,8 +1,8 @@
 package tests
 
 import (
-	filehandlers "anantashahane/BLADE_db/file_handlers"
-	"anantashahane/BLADE_db/internal/config"
+	filehandlers "XAI-liacs/BLADE_db/file_handlers"
+	"XAI-liacs/BLADE_db/internal/config"
 	"context"
 	"path/filepath"
 	"slices"
@@ -281,7 +281,7 @@ func TestOrchestrationImportConversationLog(t *testing.T) {
 	db_scratch_pad := context.Background()
 
 	path_descriptor := filehandlers.FileDetails{
-		Root:   "tests/test_files/Erdös_Min_Overlap",
+		Root:   "./test_files/Erdös_Min_Overlap",
 		Suffix: "conversationlog.json",
 	}
 	progress_data, err := filehandlers.ImportProgress(path_descriptor.Root, state, db_scratch_pad)

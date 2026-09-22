@@ -1,8 +1,8 @@
 package tests
 
 import (
-	"anantashahane/BLADE_db/internal/config"
-	"anantashahane/BLADE_db/internal/database"
+	"XAI-liacs/BLADE_db/internal/config"
+	"XAI-liacs/BLADE_db/internal/database"
 	"context"
 	"errors"
 	"math/rand/v2"
@@ -81,9 +81,9 @@ func TestRelationTableRunDescriptorInsertion(t *testing.T) {
 			if fetched_row.MethodID == descriptor.MethodID && fetched_row.ProblemID == descriptor.ProblemID {
 				found = true
 			}
-			if !found {
-				t.Fatalf("Cannot find %v in the fetched results...\n\t%v", descriptor, fetched_descriptors)
-			}
+		}
+		if !found {
+			t.Fatalf("Cannot find %v in the fetched results...\n\t%v", descriptor, fetched_descriptors)
 		}
 	}
 }
