@@ -1,4 +1,4 @@
-module anantashahane/BLADE_db
+module XAI-liacs/BLADE_db
 
 go 1.27.0
 

@@ -1,8 +1,8 @@
 package filehandlers
 
 import (
-	"anantashahane/BLADE_db/internal/config"
-	"anantashahane/BLADE_db/internal/database"
+	"XAI-liacs/BLADE_db/internal/config"
+	"XAI-liacs/BLADE_db/internal/database"
 	"context"
 	"crypto/sha256"
 	"database/sql"
@@ -509,10 +509,10 @@ func ImportExperiment(for_path string, env string) (err error) {
  *
  * ## Args:
  * 	- `for_path: string` Path for directory with `progress.json` in it's root.
- *  - `env: string literal ['test' | 'deployment'], depending on wheter feature should work on test database, or production database.
+ *  - `env: string literal ['test' | 'deployment']`:, depending on wheter feature should work on test database, or production database.
  *
  * ## Returns:
- * - `errs: []error` Errors encountered during import of the experiment, nil, if success.
+ * - `errs: []error` Errors encountered during import of the experiments, [], if success.
  */
 func ImportAllExperimentUnder(directory string, env string) (errs []error) {
 	path_regex := filepath.Join(directory, "*/progress.json")

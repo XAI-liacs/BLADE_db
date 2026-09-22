@@ -1,7 +1,7 @@
 package filehandlers
 
 import (
-	"anantashahane/BLADE_db/internal/database"
+	"XAI-liacs/BLADE_db/internal/database"
 	"bufio"
 	"encoding/json"
 	"errors"

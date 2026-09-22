@@ -1,7 +1,7 @@
 package config
 
 import (
-	"anantashahane/BLADE_db/internal/database"
+	"XAI-liacs/BLADE_db/internal/database"
 	"database/sql"
 	"errors"
 	"os"

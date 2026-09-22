@@ -1,8 +1,8 @@
 package main
 
 import (
-	"anantashahane/BLADE_db/internal/config"
-	"anantashahane/BLADE_db/internal/database"
+	"XAI-liacs/BLADE_db/internal/config"
+	"XAI-liacs/BLADE_db/internal/database"
 	"context"
 	"fmt"
 
