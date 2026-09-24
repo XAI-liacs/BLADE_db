@@ -47,6 +47,10 @@ func preTestClear(dbConfig config.State) error {
 	}
 
 	// Clear Base Tables Later.....
+
+	if err := dbConfig.DB.ClearLogBefore(ctx, time.Now()); err != nil {
+		return err
+	}
 	if err := dbConfig.DB.ClearTag(ctx); err != nil {
 		return err
 	}

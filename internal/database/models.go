@@ -41,6 +41,14 @@ type Llm struct {
 	Config   json.RawMessage
 }
 
+type Log struct {
+	ID          uuid.UUID
+	Type        string
+	Message     string
+	DatabaseKey string
+	CreatedAt   time.Time
+}
+
 type Message struct {
 	ID      uuid.UUID
 	Message string
