@@ -1,0 +1,10 @@
+{
+    "name": "LLaMEA-llama3.2:latest",
+    "source": "https://github.com/XAI-liacs/LLaMEA",
+    "config": {
+        "n_parents": 4,
+        "n_offspring": 4,
+        "budget": 10
+    },
+    "hash": "65b86ee8be4c507f7382156ee7a470b4e0246f3f347701d2b62318f543454ecd"
+}
