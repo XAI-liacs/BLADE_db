@@ -374,5 +374,7 @@ func TestCompleteInjestion(t *testing.T) {
 }
 
 func TestCompleteMultiInjestion(t *testing.T) {
+	state := config.GetContext("test")
+	preTestClear(state)
 	filehandlers.ImportAllExperimentUnder("./test_files", "test")
 }

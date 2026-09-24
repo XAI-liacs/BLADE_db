@@ -426,15 +426,7 @@ func ImportExperiment(for_path string, env string) (err error) {
 
 	progress_info, err := ImportProgress(for_path, state, db_scratch_pad) // progress_id, map[run_path]run_id
 	if err != nil {
-		err_msg := fmt.Errorf("Unable to import progress at path %s, error: %s", for_path, err.Error())
-		_ = state.DB.CreateLog(db_scratch_pad, database.CreateLogParams{
-			ID:          uuid.New(),
-			Type:        "Import Progress Error",
-			Message:     err_msg.Error(),
-			DatabaseKey: state.DB_Path,
-			CreatedAt:   time.Now(),
-		})
-		return err_msg
+		return fmt.Errorf("Unable to import progress at path %s, error: %s", for_path, err.Error())
 	}
 	for run_path, run_id := range progress_info.RunData {
 		path_descriptor := FileDetails{
@@ -446,15 +438,7 @@ func ImportExperiment(for_path string, env string) (err error) {
 			state,
 			db_scratch_pad)
 		if err != nil {
-			err_msg := fmt.Errorf("Unable to import problem at path %v, error: %s", path_descriptor, err.Error())
-			_ = state.DB.CreateLog(db_scratch_pad, database.CreateLogParams{
-				ID:          uuid.New(),
-				Type:        "Import Problem Error",
-				Message:     err_msg.Error(),
-				DatabaseKey: state.DB_Path,
-				CreatedAt:   time.Now(),
-			})
-			return err_msg
+			return fmt.Errorf("Unable to import problem at path %v, error: %s", path_descriptor, err.Error())
 		}
 
 		path_descriptor.Suffix = "llm.json"
@@ -463,15 +447,7 @@ func ImportExperiment(for_path string, env string) (err error) {
 			state,
 			db_scratch_pad)
 		if err != nil {
-			err_msg := fmt.Errorf("Unable to import llms from path %v, error: %s", path_descriptor, err.Error())
-			_ = state.DB.CreateLog(db_scratch_pad, database.CreateLogParams{
-				ID:          uuid.New(),
-				Type:        "Import LLMs Error",
-				Message:     err_msg.Error(),
-				DatabaseKey: state.DB_Path,
-				CreatedAt:   time.Now(),
-			})
-			return err_msg
+			return fmt.Errorf("Unable to import llms from path %v, error: %s", path_descriptor, err.Error())
 		}
 
 		path_descriptor.Suffix = "method.json"
@@ -480,15 +456,7 @@ func ImportExperiment(for_path string, env string) (err error) {
 			state,
 			db_scratch_pad)
 		if err != nil {
-			err_msg := fmt.Errorf("Unable to import method from path %v, error: %s", path_descriptor, err.Error())
-			_ = state.DB.CreateLog(db_scratch_pad, database.CreateLogParams{
-				ID:          uuid.New(),
-				Type:        "Import Method Error",
-				Message:     err_msg.Error(),
-				DatabaseKey: state.DB_Path,
-				CreatedAt:   time.Now(),
-			})
-			return err_msg
+			return fmt.Errorf("Unable to import method from path %v, error: %s", path_descriptor, err.Error())
 		}
 
 		path_descriptor.Suffix = "log.jsonl"
@@ -498,15 +466,7 @@ func ImportExperiment(for_path string, env string) (err error) {
 			state,
 			db_scratch_pad)
 		if err != nil {
-			err_msg := fmt.Errorf("Unable to import solutions from path %v, error: %s", path_descriptor, err.Error())
-			_ = state.DB.CreateLog(db_scratch_pad, database.CreateLogParams{
-				ID:          uuid.New(),
-				Type:        "Import Log Error",
-				Message:     err_msg.Error(),
-				DatabaseKey: state.DB_Path,
-				CreatedAt:   time.Now(),
-			})
-			return err_msg
+			return fmt.Errorf("Unable to import solutions from path %v, error: %s", path_descriptor, err.Error())
 		}
 
 		path_descriptor.Suffix = "conversationlog.jsonl"
@@ -518,15 +478,7 @@ func ImportExperiment(for_path string, env string) (err error) {
 			state,
 			db_scratch_pad)
 		if err != nil {
-			err_msg := fmt.Errorf("Unable to import conversationlog from path %v, error: %s", path_descriptor, err.Error())
-			_ = state.DB.CreateLog(db_scratch_pad, database.CreateLogParams{
-				ID:          uuid.New(),
-				Type:        "Import Conversation Log Error",
-				Message:     err_msg.Error(),
-				DatabaseKey: state.DB_Path,
-				CreatedAt:   time.Now(),
-			})
-			return err_msg
+			return fmt.Errorf("Unable to import conversationlog from path %v, error: %s", path_descriptor, err.Error())
 		}
 
 		err = ConnectMethodLLMs(
@@ -535,15 +487,7 @@ func ImportExperiment(for_path string, env string) (err error) {
 			state,
 			db_scratch_pad)
 		if err != nil {
-			err_msg := fmt.Errorf("Unable to populate method_llm table error: %s", err.Error())
-			_ = state.DB.CreateLog(db_scratch_pad, database.CreateLogParams{
-				ID:          uuid.New(),
-				Type:        "Connect Method <-> LLM Error",
-				Message:     err_msg.Error(),
-				DatabaseKey: state.DB_Path,
-				CreatedAt:   time.Now(),
-			})
-			return err_msg
+			return fmt.Errorf("Unable to populate method_llm table error: %s", err.Error())
 		}
 		err = ConnectRunDescriptor(
 			run_id.DatabaseID,
@@ -552,15 +496,7 @@ func ImportExperiment(for_path string, env string) (err error) {
 			state,
 			db_scratch_pad)
 		if err != nil {
-			err_msg := fmt.Errorf("Unable to populate run_descriptor table error: %s", err.Error())
-			_ = state.DB.CreateLog(db_scratch_pad, database.CreateLogParams{
-				ID:          uuid.New(),
-				Type:        "Generate Run-Descriptor Error",
-				Message:     err_msg.Error(),
-				DatabaseKey: state.DB_Path,
-				CreatedAt:   time.Now(),
-			})
-			return err_msg
+			return fmt.Errorf("Unable to populate run_descriptor table error: %s", err.Error())
 		}
 	}
 	return tx.Commit()
@@ -584,12 +520,41 @@ func ImportAllExperimentUnder(directory string, env string) (errs []error) {
 	}
 
 	errs = make([]error, 0)
+	// Start new context for logging.
+	state := config.GetContext(env)
+
+	db_scratch_pad := context.Background()
+
+	tx, _ := state.DB_pointer.BeginTx(db_scratch_pad, nil)
+
+	defer tx.Rollback()
+	state.DB = state.DB.WithTx(tx)
 
 	for _, project := range projects {
 		path := filepath.Dir(project)
 		if err = ImportExperiment(path, env); err != nil {
 			errs = append(errs, err)
+		} else {
+			_ = state.DB.CreateLog(db_scratch_pad, database.CreateLogParams{
+				ID:          uuid.New(),
+				Type:        "Experiment import success",
+				Message:     fmt.Sprintf("Imported experiment from %s", project),
+				DatabaseKey: state.DB_Path,
+				CreatedAt:   time.Now(),
+			})
 		}
 	}
+
+	for _, err := range errs {
+		// Log the errors in log transaction.
+		_ = state.DB.CreateLog(db_scratch_pad, database.CreateLogParams{
+			ID:          uuid.New(),
+			Type:        "Experiment import error",
+			Message:     err.Error(),
+			DatabaseKey: state.DB_Path,
+			CreatedAt:   time.Now(),
+		})
+	}
+	_ = tx.Commit()
 	return errs
 }
