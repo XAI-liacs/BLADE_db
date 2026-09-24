@@ -129,7 +129,7 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// _ = os.Remove(path)
-	unzipped_path := filepath.Base(path)
+	unzipped_path := filepath.Dir(path)
 
 	unzip(path, unzipped_path)
 	errs := filehandlers.ImportAllExperimentUnder(unzipped_path, "deployment")
