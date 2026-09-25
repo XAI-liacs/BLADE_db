@@ -345,7 +345,7 @@ func (sl SolutionLog) Read(file_details FileDetails) (content []SolutionLog, err
 	if err != nil {
 		return content, err
 	}
-	for _, sl := range content {
+	for index, sl := range content {
 		fitness_map := make(map[string]any)
 		switch fitness := sl.Fitness.(type) {
 		case float64:
@@ -356,6 +356,7 @@ func (sl SolutionLog) Read(file_details FileDetails) (content []SolutionLog, err
 			fitness_map = map[string]any{}
 		}
 		sl.Fitness = fitness_map
+		content[index].Fitness = fitness_map
 	}
 	return
 }
