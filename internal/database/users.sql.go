@@ -24,7 +24,7 @@ VALUES (
 type CreateUserParams struct {
 	ID           uuid.UUID
 	Name         string
-	PasswordHash string
+	PasswordHash []byte
 	IsAdmin      bool
 }
 
@@ -83,7 +83,7 @@ WHERE id = $1
 
 type UpdatePasswordParams struct {
 	ID           uuid.UUID
-	PasswordHash string
+	PasswordHash []byte
 }
 
 func (q *Queries) UpdatePassword(ctx context.Context, arg UpdatePasswordParams) error {

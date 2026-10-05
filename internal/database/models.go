@@ -123,7 +123,7 @@ type TagProblem struct {
 type User struct {
 	ID                uuid.UUID
 	Name              string
-	PasswordHash      string
+	PasswordHash      []byte
 	DefaultVisibility bool
 	IsAdmin           bool
 }
