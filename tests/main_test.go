@@ -24,6 +24,9 @@ func preTestClear(dbConfig config.State) error {
 	fmt.Println("\t=== Clearing all tables ===")
 	ctx := context.Background()
 	// Clear Relation Tables First.....
+	if err := dbConfig.DB.ClearUserExperiments(ctx); err != nil {
+		return err
+	}
 	if err := dbConfig.DB.ClearRunDescriptor(ctx); err != nil {
 		return err
 	}
@@ -52,6 +55,9 @@ func preTestClear(dbConfig config.State) error {
 		return err
 	}
 	if err := dbConfig.DB.ClearTag(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearUsers(ctx); err != nil {
 		return err
 	}
 	if err := dbConfig.DB.ClearRun(ctx); err != nil {

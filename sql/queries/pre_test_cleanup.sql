@@ -42,3 +42,9 @@ DELETE FROM conversation_log;
 
 -- name: ClearRunDescriptor :exec
 DELETE FROM run_descriptor;
+
+-- name: ClearUsers :exec
+DELETE FROM users;
+
+-- name: ClearUserExperiments :exec
+DELETE FROM user_experiment;

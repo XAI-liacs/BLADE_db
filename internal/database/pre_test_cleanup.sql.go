@@ -143,3 +143,21 @@ func (q *Queries) ClearTagProblem(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, clearTagProblem)
 	return err
 }
+
+const clearUserExperiments = `-- name: ClearUserExperiments :exec
+DELETE FROM user_experiment
+`
+
+func (q *Queries) ClearUserExperiments(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, clearUserExperiments)
+	return err
+}
+
+const clearUsers = `-- name: ClearUsers :exec
+DELETE FROM users
+`
+
+func (q *Queries) ClearUsers(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, clearUsers)
+	return err
+}

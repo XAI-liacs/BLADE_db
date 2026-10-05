@@ -119,3 +119,16 @@ type TagProblem struct {
 	TagID     uuid.UUID
 	ProblemID uuid.UUID
 }
+
+type User struct {
+	ID                uuid.UUID
+	Name              string
+	PasswordHash      string
+	DefaultVisibility bool
+	IsAdmin           bool
+}
+
+type UserExperiment struct {
+	UserID       uuid.UUID
+	ExperimentID uuid.UUID
+}

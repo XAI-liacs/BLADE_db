@@ -155,8 +155,8 @@ func ImportSolution(path_descriptor FileDetails, run_id uuid.UUID, state config.
 			Description: sql.NullString{String: solution.Description, Valid: true},
 			Generation:  sql.NullInt32{Int32: int32(OptionalUnwrap(solution.Generation)), Valid: solution.Generation != nil},
 			Code:        sql.NullString{String: solution.Code, Valid: true},
-			Metadata:    pqtype.NullRawMessage{RawMessage: metadata, Valid: len(metadata) != 0},
-			Fitness:     pqtype.NullRawMessage{RawMessage: fitness_raw_data, Valid: len(fitness_raw_data) != 0},
+			Metadata:    pqtype.NullRawMessage{RawMessage: metadata, Valid: len(metadata) > 2},
+			Fitness:     pqtype.NullRawMessage{RawMessage: fitness_raw_data, Valid: len(fitness_raw_data) > 2},
 		})
 		if err != nil {
 			return solution_ids, err
