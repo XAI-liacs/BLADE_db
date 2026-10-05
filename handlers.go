@@ -1,6 +1,7 @@
 package main
 
 import (
+	"XAI-liacs/BLADE_db/authentication"
 	filehandlers "XAI-liacs/BLADE_db/file_handlers"
 	"XAI-liacs/BLADE_db/internal/config"
 	"XAI-liacs/BLADE_db/internal/database"
@@ -156,13 +157,83 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		http.Error(w, "Unable to create user, "+err.Error(), http.StatusInternalServerError)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, "User ID: "+user_id.String())
 	tx.Commit()
 }
 
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	type LoginUser struct {
+		Name     string `json:"name"`
+		Password string `json:"password"`
+	}
+
+	state := config.GetContext("deployment")
+
+	user_data := LoginUser{}
+
+	err := json.NewDecoder(r.Body).Decode(&user_data)
+
+	if err != nil {
+		http.Error(w, "invalid JSON"+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	username_regex := regexp.MustCompile(`^[a-zA-Z0-9._-]{4,32}$`)
+	if !username_regex.MatchString(user_data.Name) {
+		http.Error(w, "Invalid User name.", http.StatusBadRequest)
+		return
+	}
+
+	if len(user_data.Password) < 10 {
+		http.Error(w, "Password too short.", http.StatusBadRequest)
+		return
+	}
+
+	db_user, err := state.DB.GetUserNamed(r.Context(), user_data.Name)
+	if err != nil {
+		http.Error(w, "User not signed up.", http.StatusBadRequest)
+		return
+	}
+	pass_hash := sha256.Sum256([]byte(user_data.Password))
+
+	if pass_hash != [32]byte(db_user.PasswordHash) {
+		http.Error(w, "Incorrect password.", http.StatusBadRequest)
+		return
+	}
+	expiration_time := (60 * time.Hour * 24)
+	jwt_token, err := authentication.MakeJWT(db_user.ID, expiration_time)
+	if err != nil {
+		http.Error(w, "Unable to create web token, "+err.Error(), http.StatusInternalServerError)
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "access_token",
+		Value:    jwt_token,
+		Path:     "/dashboard",
+		HttpOnly: true,  //Security against js.
+		Secure:   false, // HTTPS only #TODO: set true when deploying.
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   int(expiration_time),
+	})
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func submitHandler(w http.ResponseWriter, r *http.Request) {
+	// Check who is uploading the file.
+	token, err := authentication.GetBearerToken(r.Header)
+	if err != nil {
+		http.Error(w, "Unauthorised upload; sign in to upload", http.StatusBadRequest)
+		return
+	}
+	user_id, err := authentication.ValidateJWT(token)
+	if err != nil {
+		http.Error(w, "Invalid token; sign in to upload", http.StatusBadRequest)
+		return
+	}
 	// Protect against accidentally huge uploads.
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	defer r.Body.Close()
@@ -192,7 +263,7 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
 	unzipped_path := filepath.Dir(path)
 
 	unzip(path, unzipped_path)
-	errs := filehandlers.ImportAllExperimentUnder(unzipped_path, "deployment")
+	errs := filehandlers.ImportAllExperimentUnder(unzipped_path, "deployment", user_id)
 	if len(errs) != 0 {
 		http.Error(w, "Failed to save to db.", http.StatusInternalServerError)
 		return

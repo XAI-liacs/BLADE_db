@@ -15,7 +15,9 @@ func main() {
 
 	mux.HandleFunc("/health", healthHandler) // Health check, returns ok, and supported blade verison as response.
 
-	mux.HandleFunc("/signup", signUpHandler) // Used to Sign up as a user.
+	mux.HandleFunc("/signup", signUpHandler) // Used to Signup as a user.
+	mux.HandleFunc("/login", loginHandler)   // Used to Login as a user.
+
 	mux.HandleFunc("/submit", submitHandler) // Used to upload an experiment file to the server.
 
 	mux.HandleFunc("/runs", getRunsHandler)                       // Gets runs for a given experiment = /runs?experiment_id=<experiment_id>

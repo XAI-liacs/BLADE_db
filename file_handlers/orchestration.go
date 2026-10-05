@@ -408,11 +408,12 @@ func ConnectRunDescriptor(run_id, method_id, problem_id uuid.UUID, state config.
  * ## Args:
  * 	- `for_path: string` Path for directory with `progress.json` in it's root.
  *  - `env: string literal ['test' | 'deployment'], depending on wheter feature should work on test database, or production database.
+ *  - `for_user_id: uuid.UUID, Used to associate the experiment with the uploader.
  *
  * ## Returns:
  * - `err: Err` Error encountered during import of the experiment, nil, if success.
  */
-func ImportExperiment(for_path string, env string) (err error) {
+func ImportExperiment(for_path string, env string, for_user_id uuid.UUID) (err error) {
 	state := config.GetContext(env)
 
 	db_scratch_pad := context.Background()
@@ -427,6 +428,14 @@ func ImportExperiment(for_path string, env string) (err error) {
 	progress_info, err := ImportProgress(for_path, state, db_scratch_pad) // progress_id, map[run_path]run_id
 	if err != nil {
 		return fmt.Errorf("Unable to import progress at path %s, error: %s", for_path, err.Error())
+	}
+
+	err = state.DB.ConnectUserwithExperiment(db_scratch_pad, database.ConnectUserwithExperimentParams{
+		UserID:       for_user_id,
+		ExperimentID: progress_info.Experiment.DatabaseID,
+	})
+	if err != nil {
+		return errors.New("Unable to connect user " + for_user_id.String() + " with experiment " + progress_info.Experiment.DatabaseID.String())
 	}
 	for run_path, run_id := range progress_info.RunData {
 		path_descriptor := FileDetails{
@@ -508,11 +517,12 @@ func ImportExperiment(for_path string, env string) (err error) {
  * ## Args:
  * 	- `for_path: string` Path for directory with `progress.json` in it's root.
  *  - `env: string literal ['test' | 'deployment']`:, depending on wheter feature should work on test database, or production database.
+ *  - `for_user_id: uuid.UUID` used to connect the experiment with the uploader.
  *
  * ## Returns:
  * - `errs: []error` Errors encountered during import of the experiments, [], if success.
  */
-func ImportAllExperimentUnder(directory string, env string) (errs []error) {
+func ImportAllExperimentUnder(directory string, env string, for_user_id uuid.UUID) (errs []error) {
 	path_regex := filepath.Join(directory, "*/progress.json")
 	projects, err := filepath.Glob(path_regex)
 	if err != nil {
@@ -532,7 +542,7 @@ func ImportAllExperimentUnder(directory string, env string) (errs []error) {
 
 	for _, project := range projects {
 		path := filepath.Dir(project)
-		if err = ImportExperiment(path, env); err != nil {
+		if err = ImportExperiment(path, env, for_user_id); err != nil {
 			errs = append(errs, err)
 		} else {
 			_ = state.DB.CreateLog(db_scratch_pad, database.CreateLogParams{

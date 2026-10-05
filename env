@@ -3,3 +3,4 @@
 
 export database_key='postgres://<user_name>:<password>@localhost:5432/blade?sslmode=disable'
 export test_key='postgres://<user_name>:<password>@localhost:5432/blade?sslmode=disable'
+export secret_string='<some long string for jwt authentication, remember to change every 3-4 months.>'
