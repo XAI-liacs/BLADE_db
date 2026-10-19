@@ -1,0 +1,123 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js" integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="/frontend/styles.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+        <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js" integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous"></script>
+        <title>BLADE DB</title>
+    </head>
+    <body>
+        <div class="site-header mx-auto py-5 px-2">
+            <img src="/frontend/src/logo_inherit_color.svg" alt="Logo" class="site-logo neumorphic-btn">
+
+            <div class="header-spacer"></div>
+
+            <div class="neumorphic-tab-container__controls neumorphic-outer">
+                <div class="neumorphic-tab-container__control neumorphic-tab-container__control_active" data-target="experiments">Experiments</div>
+                <div class="neumorphic-tab-container__control" data-target="leadboard">Leadboard</div>
+            </div>
+
+            <div class="header-spacer"></div>
+
+            <button type="button"
+                    class="btn neumorphic-btn popup"
+                    id="upload-button"
+                    onclick="document.getElementById('zipFile').click()">
+                <span class="material-symbols-outlined">ios_share</span>
+                <span class="popuptext neumorphic-outer" id="upload-popup">
+                    Upload ZIP
+                </span>
+            </button>
+
+            <input type="file"
+                   id="zipFile"
+                   accept=".zip"
+                   hidden>
+
+            <form id="upload-form"
+                  hx-post="/submit"
+                  hx-encoding="multipart/form-data"
+                  hx-swap="none"
+                  style="display: none;">
+                <input type="file" name="file" id="upload-file">
+            </form>
+        </div>
+            <div class="container-fluid">
+                <div class="neumorphic-outer content neumorphic-tab-container__tab neumorphic-tab-container__tab_shown" id="experiments">
+                    <div class="inner_content">
+                        <div class="navigation_view neumorphic-inner" id="left-panel">
+                            <div class="header">
+                                Experiments
+                                <button class="btn neumorphic-btn">
+                                    <span class="material-symbols-outlined">
+                                        category
+                                    </span>
+                                </button>
+                            </div>
+                            <div id="left-content"
+                            hx-get="/html/experiments"
+                            hx-trigger="load"
+                            hx-swap="innerHTML">
+                                <!--Left content.-->
+                            </div>
+                        </div>
+
+
+                    <div class="navigation_view leaf active neumorphic-inner" id="right-panel">
+                        <div class="neumorphic-tab-container">
+                            <div class="neumorphic-tab-container__controls">
+                                <div class="neumorphic-tab-container__control neumorphic-tab-container__control_active" data-target="solutions">Solutions</div>
+                                <div class="neumorphic-tab-container__control" data-target="conversation-log">Conversation Log</div>
+                            </div>
+                            <div class="neumorphic-tab-container__tab neumorphic-tab-container__tab_shown" id="solutions">
+                                <div class="content-header neumorphic-outer">
+                                    <button class="neumorphic-btn back-btn" onclick="goBack()">
+                                        <span class="material-symbols-outlined">arrow_back</span>
+                                    </button>
+                                    <span>
+                                        Solution
+                                    </span>
+                                    <button class="neumorphic-btn">
+                                        <span class="material-symbols-outlined">
+                                            sort
+                                        </span>
+                                    </button>
+                                </div>
+
+                                <div id="solution-panel"
+                                    hx-get="/html/run_data"
+                                    hx-trigger="load"
+                                    hx-swap="innerHTML"></div>
+                            </div>
+                            <div class="neumorphic-tab-container__tab" id="conversation-log">
+                                <div class="neumorphic-outer content-header">
+                                    <button class="neumorphic-btn back-btn" onclick="goBack()">
+                                        <span class="material-symbols-outlined">arrow_back</span>
+                                    </button>
+                                    <span>Conversation Log</span>
+                                    <!-- <div class="header-spacer"></div> -->
+                                    <button class="neumorphic-btn">
+                                        <span class="material-symbols-outlined">group</span>
+                                    </button>
+                                </div>
+
+
+                                <div class="chat" id="chat">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="neumorphic-tab-container__tab" id="leadboard">
+                <div class="neumorphic-card content">Hello</div>
+            </div>
+        </div>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="/frontend/script.js"></script>
+    </body>
+</html>
