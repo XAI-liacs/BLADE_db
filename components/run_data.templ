@@ -1,0 +1,13 @@
+package components
+
+import "XAI-liacs/BLADE_db/internal/database"
+
+
+
+templ RunData(
+    solutions []database.Solution,
+    messages []database.GetConversationLogRow,
+) {
+    @SolutionList(solutions)
+    @ConversationLog(messages)
+}

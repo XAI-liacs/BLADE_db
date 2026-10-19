@@ -10,7 +10,8 @@ CREATE TABLE experiment(
     id UUID PRIMARY KEY,
     name TEXT NOT NULL,
     start_date TIMESTAMPTZ NOT NULL,
-    end_date TIMESTAMPTZ NOT NULL
+    end_date TIMESTAMPTZ NOT NULL,
+    is_public BOOL NOT NULL DEFAULT False
 );
 
 CREATE TABLE tag(

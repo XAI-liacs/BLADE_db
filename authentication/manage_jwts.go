@@ -73,3 +73,15 @@ func GetBearerToken(headers http.Header) (string, error) {
 	}
 	return btPair[1], nil
 }
+
+func GetCookie(headers http.Header) (string, error) {
+	key := headers.Get("Cookie")
+	btPair := strings.Split(key, "=")
+	if len(btPair) != 2 {
+		return "", fmt.Errorf("(\"Bearer\", token) pair not found in http header -> cookie.")
+	}
+	if btPair[0] != "Bearer" {
+		return "", fmt.Errorf("Keyword \"Bearer\" not found header -> cookie.")
+	}
+	return btPair[1], nil
+}

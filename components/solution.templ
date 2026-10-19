@@ -1,0 +1,76 @@
+package components
+
+import "XAI-liacs/BLADE_db/internal/database"
+
+templ Solution(solution database.Solution) {
+	<div class="neumorphic-outer solution" id={solution.ID.String()}>
+        <div class="title">
+            <div class="name-description">
+	            <span>
+	                if solution.Name.Valid {
+	                    { solution.Name.String }
+	                } else {
+	                    -
+	                }
+	            </span>
+                <span class="sub-title">
+	                if solution.Description.Valid {
+	                    { solution.Description.String }
+	                } else {
+	                    -
+	                }
+                </span>
+            </div>
+            <div class="sub-title">
+                <span>Generation:
+	                if solution.Generation.Valid {
+	                    { solution.Generation.Int32 }
+	                } else {
+	                    -
+	                }
+                </span>
+                <span>Fitness:
+	                if solution.Fitness.Valid {
+	                    { string(solution.Fitness.RawMessage.String()) }
+	                } else {
+	                    nan
+	                }
+                </span>
+            </div>
+        </div>
+        <div class="keyValuePair neumorphic-inner">
+            <div class="key">Code</div>
+            <code class="value">
+	            <pre>
+		            if solution.Code.Valid {
+			            {solution.Code.String}
+		            } else {
+		            	...
+		            }
+	            </pre>
+            </code>
+        </div>
+        <div class="keyValuePair neumorphic-inner">
+            <div class="key">Metadata</div>
+            <div class="value">
+	                if solution.Fitness.Valid {
+	                    { string(solution.Fitness.RawMessage) }
+	                } else {
+	                    nan
+	                }
+            </div>
+        </div>
+        <div class="keyValuePair neumorphic-inner">
+            <div class="key">Parent</div>
+            <button class="material-symbols-outlined neumorphic-btn">north_east</button>
+        </div>
+    </div>
+
+}
+
+
+templ SolutionList(solutions []database.Solution) {
+	for _, solution := range solutions {
+		@Solution(solution)
+	}
+}

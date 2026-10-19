@@ -2,6 +2,7 @@ package main
 
 import (
 	"XAI-liacs/BLADE_db/authentication"
+	"XAI-liacs/BLADE_db/components"
 	filehandlers "XAI-liacs/BLADE_db/file_handlers"
 	"XAI-liacs/BLADE_db/internal/config"
 	"XAI-liacs/BLADE_db/internal/database"
@@ -10,6 +11,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"os"
@@ -86,12 +88,11 @@ func unzip(src, dest string) error {
 	return nil
 }
 
-type HealthIndicator struct {
-	Health  string
-	Version string
-}
-
 func healthHandler(w http.ResponseWriter, r *http.Request) {
+	type HealthIndicator struct {
+		Health  string
+		Version string
+	}
 	w.WriteHeader(http.StatusOK)
 
 	health := HealthIndicator{
@@ -108,11 +109,6 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func signUpHandler(w http.ResponseWriter, r *http.Request) {
-	type SignUpUser struct {
-		Name     string `json:"name"`
-		Password string `json:"password"`
-	}
-
 	state := config.GetContext("deployment")
 	tx, err := state.DB_pointer.BeginTx(r.Context(), nil)
 	if err != nil {
@@ -122,36 +118,36 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 	defer tx.Rollback()
 	state.DB = state.DB.WithTx(tx)
 
-	user_data := SignUpUser{}
-
-	err = json.NewDecoder(r.Body).Decode(&user_data)
-
+	err = r.ParseForm()
 	if err != nil {
-		http.Error(w, "invalid JSON"+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+
 	username_regex := regexp.MustCompile(`^[a-zA-Z0-9._-]{4,32}$`)
-	if !username_regex.MatchString(user_data.Name) {
+	if !username_regex.MatchString(username) {
 		http.Error(w, "Invalid User name.", http.StatusBadRequest)
 		return
 	}
 
-	if len(user_data.Password) < 10 {
-		http.Error(w, "Password too short.", http.StatusBadRequest)
+	if len(password) < 10 {
+		http.Error(w, "Password too short, need 10 or more characters.", http.StatusBadRequest)
 		return
 	}
 
-	_, err = state.DB.GetUserNamed(r.Context(), user_data.Name)
+	_, err = state.DB.GetUserNamed(r.Context(), username)
 	if err == nil {
 		http.Error(w, "User already exists.", http.StatusBadRequest)
 		return
 	}
-	pass_hash := sha256.Sum256([]byte(user_data.Password))
+	pass_hash := sha256.Sum256([]byte(password))
 
 	user_id, err := state.DB.CreateUser(r.Context(), database.CreateUserParams{
 		ID:           uuid.New(),
-		Name:         user_data.Name,
+		Name:         username,
 		PasswordHash: pass_hash[:],
 		IsAdmin:      false,
 	})
@@ -159,45 +155,28 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unable to create user, "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 	fmt.Fprintln(w, "User ID: "+user_id.String())
 	tx.Commit()
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	type LoginUser struct {
-		Name     string `json:"name"`
-		Password string `json:"password"`
-	}
-
 	state := config.GetContext("deployment")
 
-	user_data := LoginUser{}
-
-	err := json.NewDecoder(r.Body).Decode(&user_data)
-
+	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, "invalid JSON"+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
-	username_regex := regexp.MustCompile(`^[a-zA-Z0-9._-]{4,32}$`)
-	if !username_regex.MatchString(user_data.Name) {
-		http.Error(w, "Invalid User name.", http.StatusBadRequest)
-		return
-	}
-
-	if len(user_data.Password) < 10 {
-		http.Error(w, "Password too short.", http.StatusBadRequest)
-		return
-	}
-
-	db_user, err := state.DB.GetUserNamed(r.Context(), user_data.Name)
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	db_user, err := state.DB.GetUserNamed(r.Context(), username)
 	if err != nil {
 		http.Error(w, "User not signed up.", http.StatusBadRequest)
 		return
 	}
-	pass_hash := sha256.Sum256([]byte(user_data.Password))
+	pass_hash := sha256.Sum256([]byte(password))
 
 	if pass_hash != [32]byte(db_user.PasswordHash) {
 		http.Error(w, "Incorrect password.", http.StatusBadRequest)
@@ -207,24 +186,25 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	jwt_token, err := authentication.MakeJWT(db_user.ID, expiration_time)
 	if err != nil {
 		http.Error(w, "Unable to create web token, "+err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "access_token",
+		Name:     "Bearer",
 		Value:    jwt_token,
-		Path:     "/dashboard",
+		Path:     "/",
 		HttpOnly: true,  //Security against js.
 		Secure:   false, // HTTPS only #TODO: set true when deploying.
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   int(expiration_time),
 	})
 
-	w.WriteHeader(http.StatusOK)
+	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 }
 
 func submitHandler(w http.ResponseWriter, r *http.Request) {
 	// Check who is uploading the file.
-	token, err := authentication.GetBearerToken(r.Header)
+	token, err := authentication.GetCookie(r.Header)
 	if err != nil {
 		http.Error(w, "Unauthorised upload; sign in to upload", http.StatusBadRequest)
 		return
@@ -373,6 +353,119 @@ func getSolutionsLogHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(bin_data)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Println("Returned solutions..")
+}
+
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	token, err := authentication.GetCookie(r.Header)
+	if err != nil {
+		if err != nil {
+			fmt.Println(err.Error())
+			tmpl, err := template.ParseFiles("frontend/login.html")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			tmpl.Execute(w, nil)
+			return
+		}
+	}
+
+	_, err = authentication.ValidateJWT(token)
+	if err != nil {
+		fmt.Println("\t\tError validating JWT: " + token + " Error: " + err.Error())
+		tmpl, err := template.ParseFiles("frontend/login.html")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		tmpl.Execute(w, nil)
+		return
+	}
+	tmpl, err := template.ParseFiles("frontend/index.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	tmpl.Execute(w, nil)
+}
+
+// HTML component Providers.
+
+func HandleHtmlExperiment(w http.ResponseWriter, r *http.Request) {
+	component := components.EmptyExperiment()
+	token, err := authentication.GetCookie(r.Header)
+	if err != nil {
+		component.Render(r.Context(), w)
+		return
+	}
+	_, err = authentication.ValidateJWT(token)
+	if err != nil {
+		component.Render(r.Context(), w)
+		return
+	}
+	state := config.GetContext("deployment")
+	experiments, err := state.DB.GetExperiments(context.Background())
+	if err != nil {
+		component.Render(r.Context(), w)
+		return
+	}
+	experimentRuns := make([]components.ExperimentRuns, 0)
+	for _, experiment := range experiments {
+		runs, err := state.DB.GetRuns(context.Background())
+		if err != nil {
+			component.Render(r.Context(), w)
+			return
+		}
+		experimentRuns = append(experimentRuns, components.ExperimentRuns{
+			Experiment: experiment,
+			Runs:       runs,
+		})
+	}
+	if len(experimentRuns) == 0 {
+		component.Render(r.Context(), w)
+	}
+
+	experiment_list := components.ExperimentList(experimentRuns)
+	experiment_list.Render(r.Context(), w)
+}
+
+func HandleHtmlRunData(w http.ResponseWriter, r *http.Request) {
+	component := components.EmptyRightPanel("No runs selected.")
+
+	token, err := authentication.GetCookie(r.Header)
+	if err != nil {
+		component.Render(r.Context(), w)
+		return
+	}
+
+	_, err = authentication.ValidateJWT(token)
+	if err != nil {
+		component.Render(r.Context(), w)
+		return
+	}
+
+	state := config.GetContext("deployment")
+
+	runID, err := uuid.Parse(r.URL.Query().Get("run_id"))
+	if err != nil {
+		component.Render(r.Context(), w)
+		return
+	}
+
+	solutions, err := state.DB.GetSolutionsForRun(r.Context(), runID)
+	if err != nil {
+		component.Render(r.Context(), w)
+		return
+	}
+
+	conversationLog, err := state.DB.GetConversationLog(r.Context(), runID)
+	if err != nil {
+		conversationLog = []database.GetConversationLogRow{}
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	components.RunData(solutions, conversationLog).Render(r.Context(), w)
 }
 
 func preTestClear(dbConfig config.State) error {

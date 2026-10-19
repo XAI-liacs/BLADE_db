@@ -83,7 +83,7 @@ ORDER BY cl.created_at
 
 type GetConversationLogRow struct {
 	CreatedAt time.Time
-	ActorName interface{}
+	ActorName string
 	ActorID   uuid.UUID
 	ActorType string
 	Message   string

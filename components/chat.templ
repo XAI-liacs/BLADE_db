@@ -1,0 +1,24 @@
+package components
+
+import "XAI-liacs/BLADE_db/internal/database"
+
+
+templ ChatBubble(message database.GetConversationLogRow) {
+	<div class={ "bubble", templ.KV("left", message.ActorType == "llm"), templ.KV("right", message.ActorType != "llm") }>
+        <div class="chat-head">{ message.ActorName }</div>
+        <div class="message">{ message.Message }</div>
+        <div class="date">{ message.CreatedAt.Format("Jan 2, 2006 15:04") }</div>
+    </div>
+}
+
+templ ConversationLog(messages []database.GetConversationLogRow) {
+    <div class="chat" id="chat" hx-swap-oob="innerHTML">
+        if len(messages) == 0 {
+            @EmptyRightPanel("No chat data found...")
+        } else {
+            for _, message := range messages {
+                @ChatBubble(message)
+            }
+        }
+    </div>
+}

@@ -43,7 +43,7 @@ func (q *Queries) CreateExperiment(ctx context.Context, arg CreateExperimentPara
 }
 
 const getExperiments = `-- name: GetExperiments :many
-SELECT id, name, start_date, end_date FROM experiment
+SELECT id, name, start_date, end_date, is_public FROM experiment
 `
 
 func (q *Queries) GetExperiments(ctx context.Context) ([]Experiment, error) {
@@ -60,6 +60,7 @@ func (q *Queries) GetExperiments(ctx context.Context) ([]Experiment, error) {
 			&i.Name,
 			&i.StartDate,
 			&i.EndDate,
+			&i.IsPublic,
 		); err != nil {
 			return nil, err
 		}

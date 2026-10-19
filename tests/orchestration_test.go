@@ -3,7 +3,9 @@ package tests
 import (
 	filehandlers "XAI-liacs/BLADE_db/file_handlers"
 	"XAI-liacs/BLADE_db/internal/config"
+	"XAI-liacs/BLADE_db/internal/database"
 	"context"
+	"crypto/sha256"
 	"path/filepath"
 	"slices"
 	"testing"
@@ -319,12 +321,19 @@ func TestCompleteInjestion(t *testing.T) {
 	}
 	path = filepath.Join(path, "/test_files/Erdös_Min_Overlap")
 
-	err = filehandlers.ImportExperiment(path, "test")
+	pass_hash := sha256.Sum256([]byte("hello"))
+	state := config.GetContext("test")
+	id, err := state.DB.CreateUser(context.Background(), database.CreateUserParams{
+		ID:           uuid.New(),
+		Name:         "test",
+		PasswordHash: pass_hash[:],
+		IsAdmin:      false,
+	})
+	err = filehandlers.ImportExperiment(path, "test", id)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 	// Check if commit succeeded.
-	state := config.GetContext("test")
 	exps, err := state.DB.GetExperiments(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -376,5 +385,15 @@ func TestCompleteInjestion(t *testing.T) {
 func TestCompleteMultiInjestion(t *testing.T) {
 	state := config.GetContext("test")
 	preTestClear(state)
-	filehandlers.ImportAllExperimentUnder("./test_files", "test")
+	pass_hash := sha256.Sum256([]byte("hello"))
+	id, err := state.DB.CreateUser(context.Background(), database.CreateUserParams{
+		ID:           uuid.New(),
+		Name:         "test",
+		PasswordHash: pass_hash[:],
+		IsAdmin:      false,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	filehandlers.ImportAllExperimentUnder("./test_files", "test", id)
 }

@@ -26,6 +26,7 @@ type Experiment struct {
 	Name      string
 	StartDate time.Time
 	EndDate   time.Time
+	IsPublic  bool
 }
 
 type ExperimentRun struct {

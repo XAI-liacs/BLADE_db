@@ -13,6 +13,17 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	mux.Handle("/frontend/",
+		http.StripPrefix("/frontend/",
+			http.FileServer(http.Dir("frontend")),
+		),
+	)
+
+	mux.HandleFunc("/", homeHandler)
+
+	mux.HandleFunc("/html/experiments", HandleHtmlExperiment)
+	mux.HandleFunc("/html/run_data", HandleHtmlRunData)
+
 	mux.HandleFunc("/health", healthHandler) // Health check, returns ok, and supported blade verison as response.
 
 	mux.HandleFunc("/signup", signUpHandler) // Used to Signup as a user.
@@ -20,10 +31,10 @@ func main() {
 
 	mux.HandleFunc("/submit", submitHandler) // Used to upload an experiment file to the server.
 
-	mux.HandleFunc("/runs", getRunsHandler)                       // Gets runs for a given experiment = /runs?experiment_id=<experiment_id>
-	mux.HandleFunc("/solutions", getSolutionsLogHandler)          // Gets solutions for a given run = /solutions?run_id=<run_id>
-	mux.HandleFunc("/experiments", getExperimentsHandler)         // Gets experiments uploaded by the user #TODO: add JWT support to show only the users' information.
-	mux.HandleFunc("/conversationlog", getConversationLogHandler) // Gets conversation log for the server.
+	mux.HandleFunc("api/runs", getRunsHandler)                       // Gets runs for a given experiment = /runs?experiment_id=<experiment_id>
+	mux.HandleFunc("api/solutions", getSolutionsLogHandler)          // Gets solutions for a given run = /solutions?run_id=<run_id>
+	mux.HandleFunc("api/experiments", getExperimentsHandler)         // Gets experiments uploaded by the user #TODO: add JWT support to show only the users' information.
+	mux.HandleFunc("api/conversationlog", getConversationLogHandler) // Gets conversation log for the server.
 
 	server := &http.Server{
 		Addr:    ":8080",
