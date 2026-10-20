@@ -11,16 +11,19 @@
     </head>
     <body>
         <div class="site-header mx-auto py-5 px-2">
-            <img src="/frontend/src/logo_inherit_color.svg" alt="Logo" class="site-logo neumorphic-btn">
+            <button class="logo-container neumorphic-btn">
+                <img src="/frontend/src/logo-2-2.svg" alt="Logo" class="site-logo">
+                <div class="dot"></div>
+            </button>
 
-            <div class="header-spacer"></div>
+            <!--<div class="header-spacer"></div>-->
 
             <div class="neumorphic-tab-container__controls neumorphic-outer">
                 <div class="neumorphic-tab-container__control neumorphic-tab-container__control_active" data-target="experiments">Experiments</div>
                 <div class="neumorphic-tab-container__control" data-target="leadboard">Leadboard</div>
             </div>
 
-            <div class="header-spacer"></div>
+            <!--<div class="header-spacer"></div>-->
 
             <button type="button"
                     class="btn neumorphic-btn popup"
@@ -38,17 +41,17 @@
                    hidden>
 
             <form id="upload-form"
-                  hx-post="/submit"
+                  hx-post="html/submit"
                   hx-encoding="multipart/form-data"
                   hx-swap="none"
                   style="display: none;">
                 <input type="file" name="file" id="upload-file">
             </form>
         </div>
-            <div class="container-fluid">
-                <div class="neumorphic-outer content neumorphic-tab-container__tab neumorphic-tab-container__tab_shown" id="experiments">
+            <div class="neumorphic-outer content">
+                <div class="neumorphic-tab-container__tab neumorphic-tab-container__tab_shown" id="experiments">
                     <div class="inner_content">
-                        <div class="navigation_view neumorphic-inner" id="left-panel">
+                        <div class="navigation_view active neumorphic-inner" id="left-panel">
                             <div class="header">
                                 Experiments
                                 <button class="btn neumorphic-btn">
@@ -66,7 +69,7 @@
                         </div>
 
 
-                    <div class="navigation_view leaf active neumorphic-inner" id="right-panel">
+                    <div class="navigation_view leaf neumorphic-inner" id="right-panel">
                         <div class="neumorphic-tab-container">
                             <div class="neumorphic-tab-container__controls">
                                 <div class="neumorphic-tab-container__control neumorphic-tab-container__control_active" data-target="solutions">Solutions</div>
@@ -74,7 +77,7 @@
                             </div>
                             <div class="neumorphic-tab-container__tab neumorphic-tab-container__tab_shown" id="solutions">
                                 <div class="content-header neumorphic-outer">
-                                    <button class="neumorphic-btn back-btn" onclick="goBack()">
+                                    <button class="neumorphic-btn back-btn" onclick="SwitchView()">
                                         <span class="material-symbols-outlined">arrow_back</span>
                                     </button>
                                     <span>
@@ -94,7 +97,7 @@
                             </div>
                             <div class="neumorphic-tab-container__tab" id="conversation-log">
                                 <div class="neumorphic-outer content-header">
-                                    <button class="neumorphic-btn back-btn" onclick="goBack()">
+                                    <button class="neumorphic-btn back-btn" onclick="SwitchView()">
                                         <span class="material-symbols-outlined">arrow_back</span>
                                     </button>
                                     <span>Conversation Log</span>
@@ -119,5 +122,13 @@
         </div>
         <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
         <script src="/frontend/script.js"></script>
+        <script>
+            window.addEventListener("load", () => {
+                const bgColor = getComputedStyle(document.documentElement)
+                    .getPropertyValue("--back-color").trim();
+
+                document.body.style.backgroundColor = bgColor;
+            });
+        </script>
     </body>
 </html>

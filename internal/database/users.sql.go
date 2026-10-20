@@ -59,6 +59,25 @@ func (q *Queries) GetUserNamed(ctx context.Context, name string) (User, error) {
 	return i, err
 }
 
+const getUserWithID = `-- name: GetUserWithID :one
+SELECT id, name, password_hash, default_visibility, is_admin FROM users
+WHERE ID = $1
+LIMIT 1
+`
+
+func (q *Queries) GetUserWithID(ctx context.Context, id uuid.UUID) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserWithID, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.PasswordHash,
+		&i.DefaultVisibility,
+		&i.IsAdmin,
+	)
+	return i, err
+}
+
 const setDefaultVisibility = `-- name: SetDefaultVisibility :exec
 UPDATE users
 SET default_visibility = $2

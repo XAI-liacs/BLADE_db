@@ -12,6 +12,11 @@ SELECT * FROM users
 WHERE name = $1
 LIMIT 1;
 
+-- name: GetUserWithID :one
+SELECT * FROM users
+WHERE ID = $1
+LIMIT 1;
+
 -- name: SetDefaultVisibility :exec
 UPDATE users
 SET default_visibility = $2

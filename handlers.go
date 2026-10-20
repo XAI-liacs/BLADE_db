@@ -88,6 +88,75 @@ func unzip(src, dest string) error {
 	return nil
 }
 
+// Retrieves the database state for the specified backend and starts a new database transaction.
+//
+// ## Params
+//
+// `for_backend: string`: Can be either "development" or "test" depending on which database is being targated.
+//
+// `context: context.Context` Context used to control the lifetime of the transaction.
+//
+// `with_transaction: bool`: Adds transction to the config.State.TX so the transaction can be commited/rejected.
+//
+// ## Returns:
+//
+// `state: config.State`: Returns the database state configured to use the newly started transaction.
+//
+// `error`: Returns an error if the transaction could not be started; otherwise, returns nil.
+func getDBConnection(for_backend string, ctx context.Context, with_transaction bool) (config.State, error) {
+	state := config.GetContext(for_backend)
+	if !with_transaction {
+		return state, nil
+	}
+	tx, err := state.DB_pointer.BeginTx(ctx, nil)
+	if err != nil {
+		return config.State{}, fmt.Errorf("unable to start transaction: %w", err)
+	}
+
+	state.DB = state.DB.WithTx(tx)
+	state.TX = tx
+	return state, nil
+}
+
+// Returns authentication the information about the user that was logged in.
+//
+// ## Params
+//
+// r: Request handler, makes no changes to request handler, checks for Cookies if root_endpoint = "html" and Bearer if root_endpoit="api"
+//
+// root_endpoint: based on the root of the end-point, can be either "api" or "html".
+//
+// ## Returns:
+//
+// `user: database.User`: Returns the user data from the database.
+// `is_valid: bool`: Return is the authentication token and associate user exists in db.
+func authenticate(r *http.Request, root_endpoint string) (user database.User, err error) {
+	var token string
+	fmt.Println("\t Authentication for " + r.URL.Path)
+	if root_endpoint == "html" {
+		token, err = authentication.GetCookie(r.Header)
+	} else {
+		token, err = authentication.GetBearerToken(r.Header)
+	}
+	if err != nil {
+		return user, err
+	}
+	id, err := authentication.ValidateJWT(token)
+	if err != nil {
+		return user, err
+	}
+
+	state, err := getDBConnection("deployment", r.Context(), false)
+	if err != nil {
+		return user, err
+	}
+	user, err = state.DB.GetUserWithID(r.Context(), id)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	type HealthIndicator struct {
 		Health  string
@@ -145,7 +214,7 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	pass_hash := sha256.Sum256([]byte(password))
 
-	user_id, err := state.DB.CreateUser(r.Context(), database.CreateUserParams{
+	_, err = state.DB.CreateUser(r.Context(), database.CreateUserParams{
 		ID:           uuid.New(),
 		Name:         username,
 		PasswordHash: pass_hash[:],
@@ -155,9 +224,12 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unable to create user, "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
-	fmt.Fprintln(w, "User ID: "+user_id.String())
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+		http.Error(w, "Unable to commit user creation: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
@@ -199,27 +271,22 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   int(expiration_time),
 	})
 
-	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func submitHandler(w http.ResponseWriter, r *http.Request) {
 	// Check who is uploading the file.
-	token, err := authentication.GetCookie(r.Header)
+	user, err := authenticate(r, "html")
 	if err != nil {
-		http.Error(w, "Unauthorised upload; sign in to upload", http.StatusBadRequest)
+		http.Error(w, "Unauthorised access error: "+err.Error(), http.StatusUnauthorized)
 		return
 	}
-	user_id, err := authentication.ValidateJWT(token)
-	if err != nil {
-		http.Error(w, "Invalid token; sign in to upload", http.StatusBadRequest)
-		return
-	}
+
 	// Protect against accidentally huge uploads.
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	defer r.Body.Close()
 
-	id := uuid.New()
-	filename := fmt.Sprintf("blade_db_%s", id.String()[:8])
+	filename := fmt.Sprintf("blade_db_%s", uuid.New().String()[:8])
 	// Create the file in the system temp directory.
 	path := filepath.Join(os.TempDir(), filename)
 	if err := os.Mkdir(path, 0700); err != nil {
@@ -243,7 +310,7 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
 	unzipped_path := filepath.Dir(path)
 
 	unzip(path, unzipped_path)
-	errs := filehandlers.ImportAllExperimentUnder(unzipped_path, "deployment", user_id)
+	errs := filehandlers.ImportAllExperimentUnder(unzipped_path, "deployment", user.ID)
 	if len(errs) != 0 {
 		http.Error(w, "Failed to save to db.", http.StatusInternalServerError)
 		return
@@ -254,7 +321,7 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Printf("Received upload: %s\n", path)
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, "uploaded successfully.\n")
+	fmt.Fprint(w, "Uploaded successfully.\n")
 
 }
 
@@ -356,23 +423,9 @@ func getSolutionsLogHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-	token, err := authentication.GetCookie(r.Header)
+	_, err := authenticate(r, "html")
 	if err != nil {
-		if err != nil {
-			fmt.Println(err.Error())
-			tmpl, err := template.ParseFiles("frontend/login.html")
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			tmpl.Execute(w, nil)
-			return
-		}
-	}
-
-	_, err = authentication.ValidateJWT(token)
-	if err != nil {
-		fmt.Println("\t\tError validating JWT: " + token + " Error: " + err.Error())
+		fmt.Println(err.Error())
 		tmpl, err := template.ParseFiles("frontend/login.html")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

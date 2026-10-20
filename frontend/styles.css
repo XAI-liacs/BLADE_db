@@ -19,6 +19,8 @@ body {
     left: 0px;
     right: 0px;
     height: 60px;
+    justify-content: space-between;
+    align-content: center;
 
     box-sizing: border-box;
     display: flex;
@@ -34,16 +36,43 @@ body {
 }
 
 
-.site-logo {
-  height: 50px;
-  padding: 15px;
-  width: auto;
-  object-fit: contain;
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 70px;
+    width: 70px;
+    gap: -4px;
 }
-.upload-button {
-  height: 40px;
-  width: 40px;
-  object-fit: contain;
+
+.logo-container .dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: lightgray;
+    display: block;
+    flex-shrink: 0;
+}
+
+.logo-container .dot.active {
+    background-color: slategray;
+}
+
+.site-logo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    max-width: 100%;
+}
+
+.site-header .upload-button {
+  height: 70px;
+  width: 70px;
+  padding: 10px;
+  /*object-fit: contain;*/
 }
 
 .header-spacer {
@@ -386,11 +415,10 @@ body {
 }
 
 .content {
-  container-type: center;
-  width: 100%;
   height: calc(100vh - 100px);
   box-sizing: border-box;
-  margin: 90 0 0px;
+  margin-top: 90px;
+  margin-inline: 40px;
   container-type: inline-size;
   gap: 10px;
 }
@@ -411,18 +439,6 @@ body {
   /* box-sizing: border-box; */
   padding: 10px;
   display: flex;
-}
-
-@media (max-width: 640px) {
-  .content {
-    width: 96%;
-  }
-  .breadcrumb {
-    display: block;
-  }
-  .inner_content {
-    margin: 5px;
-  }
 }
 
 .navigation_view {
@@ -469,6 +485,17 @@ body {
 }
 
 @media (max-width: 1280px) {
+    .content {
+      margin-inline: 0px;
+      /*padding: 2px;*/
+    }
+    .breadcrumb {
+      display: block;
+    }
+    .inner_content {
+      margin: 5px;
+    }
+
     .navigation_view {
         display: none;
         flex-direction: column;
@@ -486,12 +513,12 @@ body {
     .back-btn {
         display: block;
     }
+
 }
 
 .navigation_view.leaf {
   flex: 1;
-  padding-inline: 30px;
-  /* align-items: center; */
+  padding-inline: 20px;
 }
 
 .navigation_view.leaf .content-header {
@@ -501,10 +528,9 @@ body {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  /* width: 100%; */
   box-sizing: border-box;
   padding: 15px;
-  margin-inline: -30px;
+  margin-inline: -20px;
   margin-bottom: 10px;
   font-weight: bold;
   font-size: 1.2rem;
@@ -532,8 +558,9 @@ body {
   min-width: 30%;
   padding: 10px 14px;
   border-radius: 12px;
-  overflow-wrap: anywhere;
   box-sizing: border-box;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .bubble.left {
@@ -739,6 +766,7 @@ body {
   margin-bottom: 20px;
 }
 
+
 .title {
   display: flex;
   justify-content: space-between;
@@ -791,9 +819,13 @@ body {
   text-align: left;
 }
 
+.keyValuePair code {
+    flex: 1;
+    overflow-x: scroll;
+    margin-left: 10px;
+}
 
 .keyValuePair code pre {
-    /*flex: 1;*/
     font-family: monospace;
     font-size: inherit;
     color: deeppink;

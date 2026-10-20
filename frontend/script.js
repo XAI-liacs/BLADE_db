@@ -90,8 +90,7 @@ document.addEventListener("click", (event) => {
 });
 
 //back Button:
-function goBack() {
-  console.log("Go back clicked....")
+function SwitchView() {
   const navigationView = document.querySelector("#left-panel");
   const navigationViewLeaf = document.querySelector("#right-panel");
   navigationViewLeaf.classList.toggle('active')

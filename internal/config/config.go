@@ -15,6 +15,8 @@ type State struct {
 	DB_pointer *sql.DB
 	// DB_Path contains the database connection URL used to initialize DB.
 	DB_Path string
+	// Transaction pointer, to pass transaction to commit/revert:
+	TX *sql.Tx
 }
 
 // GetContext initializes the application state for the given environment.

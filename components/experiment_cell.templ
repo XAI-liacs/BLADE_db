@@ -44,6 +44,7 @@ templ ExperimentCell(experiment_data ExperimentRuns) {
 	                hx-get={ "/html/run_data?run_id=" + run.ID.String() }
 	                hx-target="#solution-panel"
 	                hx-swap="innerHTML"
+					onClick="SwitchView()"
 	            >
 	                <div class="title">
 	                    <span class="material-symbols-outlined">terminal</span>
