@@ -903,7 +903,7 @@ body {
   margin-left: -80px;
   pointer-events: none;
   transition: opacity 1s ease-in;
-  white-space: nowrap;
+  max-width: 0.7 vw;
 }
 
 /* Popup arrow */

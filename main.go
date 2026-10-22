@@ -1,7 +1,6 @@
 package main
 
 import (
-	"XAI-liacs/BLADE_db/internal/config"
 	"fmt"
 	"net/http"
 
@@ -9,8 +8,8 @@ import (
 )
 
 func main() {
-	state := config.GetContext("deployment")
-	preTestClear(state)
+	// state := config.GetContext("deployment")
+	// preTestClear(state)
 
 	mux := http.NewServeMux()
 
@@ -28,6 +27,7 @@ func main() {
 		homeHandler(w, r)
 	})
 
+	mux.HandleFunc("/html/runs", HandleRunCells)
 	mux.HandleFunc("/html/experiments", HandleHtmlExperiment)
 	mux.HandleFunc("/html/run_data", HandleHtmlRunData)
 	mux.HandleFunc("/html/submit", submitHandler) // Used to upload an experiment file to the server.

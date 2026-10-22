@@ -13,13 +13,15 @@ import (
 )
 
 const createExperiment = `-- name: CreateExperiment :one
-INSERT INTO experiment (id, name, start_date, end_date)
+INSERT INTO experiment (id, name, start_date, end_date, is_public)
 VALUES (
     $1,
     $2,
     $3,
-    $4
-)
+    $4,
+    $5
+) ON CONFLICT (id)
+DO UPDATE SET id = EXCLUDED.id
 RETURNING id
 `
 
@@ -28,6 +30,7 @@ type CreateExperimentParams struct {
 	Name      string
 	StartDate time.Time
 	EndDate   time.Time
+	IsPublic  bool
 }
 
 func (q *Queries) CreateExperiment(ctx context.Context, arg CreateExperimentParams) (uuid.UUID, error) {
@@ -36,6 +39,7 @@ func (q *Queries) CreateExperiment(ctx context.Context, arg CreateExperimentPara
 		arg.Name,
 		arg.StartDate,
 		arg.EndDate,
+		arg.IsPublic,
 	)
 	var id uuid.UUID
 	err := row.Scan(&id)
@@ -48,6 +52,47 @@ SELECT id, name, start_date, end_date, is_public FROM experiment
 
 func (q *Queries) GetExperiments(ctx context.Context) ([]Experiment, error) {
 	rows, err := q.db.QueryContext(ctx, getExperiments)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Experiment
+	for rows.Next() {
+		var i Experiment
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.StartDate,
+			&i.EndDate,
+			&i.IsPublic,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getExperimentsForUser = `-- name: GetExperimentsForUser :many
+SELECT e.id, e.name, e.start_date, e.end_date, e.is_public
+FROM experiment e
+WHERE e.is_public
+   OR EXISTS (
+       SELECT 1
+       FROM user_experiment er
+       WHERE er.experiment_id = e.id
+         AND er.user_id = $1
+   )
+`
+
+func (q *Queries) GetExperimentsForUser(ctx context.Context, userID uuid.UUID) ([]Experiment, error) {
+	rows, err := q.db.QueryContext(ctx, getExperimentsForUser, userID)
 	if err != nil {
 		return nil, err
 	}

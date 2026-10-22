@@ -1,19 +1,21 @@
 package components
 
+import "XAI-liacs/BLADE_db/internal/database"
 
 
-templ ExperimentCell(experiment_data ExperimentRuns) {
-    <div class="experiment-cell" id={experiment_data.Experiment.ID.String()}>
+
+templ ExperimentCell(experiment database.Experiment) {
+	<div class="experiment-cell" id={experiment.ID.String()}>
         <div class="title">
             <span class="material-symbols-outlined">experiment</span>
 
             <div class="title-and-date">
-                <div class="name">{experiment_data.Experiment.Name}</div>
+                <div class="name">{experiment.Name}</div>
 
                 <div class="date">
-                    {experiment_data.Experiment.StartDate.Format("Jan 2, 2006 15:04")}
+                    {experiment.StartDate.Format("Jan 2, 2006 15:04")}
                     •
-                    {experiment_data.Experiment.EndDate.Format("Jan 2, 2006 15:04")}
+                    {experiment.EndDate.Format("Jan 2, 2006 15:04")}
                 </div>
             </div>
 
@@ -22,48 +24,23 @@ templ ExperimentCell(experiment_data ExperimentRuns) {
                 class="neumorphic-btn accordion-toggle"
                 aria-expanded="false"
                 aria-label="Expand experiment"
+                hx-on:click="const details = this.closest('.experiment-cell').querySelector('.experiment-details'); if (!details.innerHTML.trim()) htmx.trigger(details, 'loadRuns')"
             >
                 <span class="material-symbols-outlined">keyboard_arrow_down</span>
             </button>
         </div>
 
-        <div class="experiment-details">
-            <div class="visibility neumorphic-inner">
-                <span>Visibility</span>
-
-                <button
-                    type="button"
-                    class="btn neumorphic-btn neumorphic-checkbox"
-                ></button>
-            </div>
-
-            for _, run := range experiment_data.Runs {
-	            <button
-	                type="button"
-	                class="run-cell btn"
-	                hx-get={ "/html/run_data?run_id=" + run.ID.String() }
-	                hx-target="#solution-panel"
-	                hx-swap="innerHTML"
-					onClick="SwitchView()"
-	            >
-	                <div class="title">
-	                    <span class="material-symbols-outlined">terminal</span>
-
-	                    <div class="name">{ run.Name }</div>
-
-	                    <div class="seed">
-	                        Seed { run.Seed }
-	                    </div>
-
-	                    <span class="material-symbols-outlined">chevron_forward</span>
-	                </div>
-	            </button>
-            }
+        <div
+            class="experiment-details"
+            id="experiment-details"
+            hx-get={"/html/runs?experiment_id=" + experiment.ID.String()}
+            hx-trigger="loadRuns"
+            hx-swap="innerHTML">
         </div>
     </div>
 }
 
-templ ExperimentList(experiment_data []ExperimentRuns) {
+templ ExperimentList(experiment_data []database.Experiment) {
 	for _, experiment_datum := range experiment_data {
 		@ExperimentCell(experiment_datum)
 	}

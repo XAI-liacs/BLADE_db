@@ -16,7 +16,7 @@ SELECT
 
     CASE
         WHEN cl.llm_id IS NOT NULL THEN l.model
-        ELSE m.name
+        ELSE m.name::text
     END AS actor_name,
 
     CASE

@@ -1,0 +1,38 @@
+package components
+
+import "XAI-liacs/BLADE_db/internal/database"
+
+
+templ RunCells(runs []database.Run, showVisibilityToggle, isActive bool) {
+	if showVisibilityToggle {
+		<div class="visibility neumorphic-inner">
+			<span>Visibility</span>
+		   	<button
+			    type="button"
+			    class={ "btn neumorphic-btn neumorphic-checkbox", templ.KV("neumorphic-checkbox_active", isActive) }></button>
+		</div>
+	}
+
+	for _, run := range runs {
+        <button
+            type="button"
+            class="run-cell btn"
+            hx-get={ "/html/run_data?run_id=" + run.ID.String() }
+            hx-target="#solution-panel"
+            hx-swap="innerHTML"
+			onClick="SwitchView()"
+        >
+            <div class="title">
+                <span class="material-symbols-outlined">terminal</span>
+
+                <div class="name">{ run.Name }</div>
+
+                <div class="seed">
+                    Seed { run.Seed }
+                </div>
+
+                <span class="material-symbols-outlined">chevron_forward</span>
+            </div>
+        </button>
+	}
+}

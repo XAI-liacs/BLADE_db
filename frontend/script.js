@@ -154,7 +154,9 @@ htmx.on("htmx:afterRequest", function (event) {
         zipInput.value = "";
         uploadFile.value = "";
     } else {
-      presentPopup(`Upload failed (${event.detail.xhr.status}).`);
+      presentPopup(
+          event.detail.xhr.responseText || `Upload failed (${event.detail.xhr.status}).`
+      );
       hidePopupAfterUpload();
     }
 });
