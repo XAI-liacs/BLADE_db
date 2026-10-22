@@ -38,13 +38,14 @@ type ProgressImportData struct {
  * ## Args
  *
  * - `project_path : string`: Path to the root of the experiment, i.e., path where `progress.json` exist for a given experiment.
+ * - `for_user: database.User`: User data for visibility setup, sets experiment visibility to that of user's default visibility.
  * - `state: State struct`: Contains db related functions.
  * - `db_scratch_pad: context.Context`: Allows for cancellable update of the database, if an error is encountered, context.cancel().
  *
  * ## Returns
  * - `progress_ids: ProgressImportData` for all future references.
  */
-func ImportProgress(project_path string, state config.State, db_scratch_pad context.Context) (progress_info ProgressImportData, err error) {
+func ImportProgress(project_path string, for_user database.User, state config.State, db_scratch_pad context.Context) (progress_info ProgressImportData, err error) {
 
 	// Step 1: Check if provided path is actually pwd for experiment (root dir must contain `progress.json`)
 	found_progress_json := false
@@ -76,6 +77,13 @@ func ImportProgress(project_path string, state config.State, db_scratch_pad cont
 		return progress_info, err
 	}
 	// Add experiment into DB
+	// Check if experiment is already in the DB.
+	experiment_already_imported, err := state.DB.CheckExperimentWithIDExists(db_scratch_pad, progress_data.progressData.ID)
+	if err != nil {
+		return progress_info, err
+	}
+	// Set Default visibility for experiment.
+	progress_data.progressData.IsPublic = for_user.DefaultVisibility
 	id, err := state.DB.CreateExperiment(db_scratch_pad, progress_data.progressData)
 	if err != nil {
 		return progress_info, err
@@ -84,6 +92,10 @@ func ImportProgress(project_path string, state config.State, db_scratch_pad cont
 	progress_info.Experiment = ID_Mapping{
 		FileID:     progress_data.progressData.ID,
 		DatabaseID: id,
+	}
+
+	if experiment_already_imported {
+		return progress_info, nil
 	}
 
 	progress_info.RunData = make(map[string]ID_Mapping)
@@ -413,7 +425,7 @@ func ConnectRunDescriptor(run_id, method_id, problem_id uuid.UUID, state config.
  * ## Returns:
  * - `err: Err` Error encountered during import of the experiment, nil, if success.
  */
-func ImportExperiment(for_path string, env string, for_user_id uuid.UUID) (err error) {
+func ImportExperiment(for_path string, env string, for_user database.User) (err error) {
 	state := config.GetContext(env)
 
 	db_scratch_pad := context.Background()
@@ -425,17 +437,17 @@ func ImportExperiment(for_path string, env string, for_user_id uuid.UUID) (err e
 	defer tx.Rollback()
 	state.DB = state.DB.WithTx(tx)
 
-	progress_info, err := ImportProgress(for_path, state, db_scratch_pad) // progress_id, map[run_path]run_id
+	progress_info, err := ImportProgress(for_path, for_user, state, db_scratch_pad) // progress_id, map[run_path]run_id
 	if err != nil {
 		return fmt.Errorf("Unable to import progress at path %s, error: %s", for_path, err.Error())
 	}
 
 	err = state.DB.ConnectUserwithExperiment(db_scratch_pad, database.ConnectUserwithExperimentParams{
-		UserID:       for_user_id,
+		UserID:       for_user.ID,
 		ExperimentID: progress_info.Experiment.DatabaseID,
 	})
 	if err != nil {
-		return errors.New("Unable to connect user " + for_user_id.String() + " with experiment " + progress_info.Experiment.DatabaseID.String())
+		return errors.New("Unable to connect user " + for_user.ID.String() + " with experiment " + progress_info.Experiment.DatabaseID.String())
 	}
 	for run_path, run_id := range progress_info.RunData {
 		path_descriptor := FileDetails{
@@ -522,7 +534,7 @@ func ImportExperiment(for_path string, env string, for_user_id uuid.UUID) (err e
  * ## Returns:
  * - `errs: []error` Errors encountered during import of the experiments, [], if success.
  */
-func ImportAllExperimentUnder(directory string, env string, for_user_id uuid.UUID) (errs []error) {
+func ImportAllExperimentUnder(directory string, env string, for_user database.User) (errs []error) {
 	path_regex := filepath.Join(directory, "*/progress.json")
 	projects, err := filepath.Glob(path_regex)
 	if err != nil {
@@ -542,7 +554,7 @@ func ImportAllExperimentUnder(directory string, env string, for_user_id uuid.UUI
 
 	for _, project := range projects {
 		path := filepath.Dir(project)
-		if err = ImportExperiment(path, env, for_user_id); err != nil {
+		if err = ImportExperiment(path, env, for_user); err != nil {
 			errs = append(errs, err)
 		} else {
 			_ = state.DB.CreateLog(db_scratch_pad, database.CreateLogParams{

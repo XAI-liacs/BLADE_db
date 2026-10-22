@@ -72,7 +72,7 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
 	unzipped_path := filepath.Dir(path)
 
 	unzip(path, unzipped_path)
-	errs := filehandlers.ImportAllExperimentUnder(unzipped_path, "deployment", user.ID)
+	errs := filehandlers.ImportAllExperimentUnder(unzipped_path, "deployment", user)
 	if len(errs) != 0 {
 		var builder strings.Builder
 

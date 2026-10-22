@@ -10,7 +10,23 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
+
+const checkExperimentWithIDExists = `-- name: CheckExperimentWithIDExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM experiment
+    WHERE id = $1
+)
+`
+
+func (q *Queries) CheckExperimentWithIDExists(ctx context.Context, id uuid.UUID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkExperimentWithIDExists, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
 
 const createExperiment = `-- name: CreateExperiment :one
 INSERT INTO experiment (id, name, start_date, end_date, is_public)
@@ -118,4 +134,41 @@ func (q *Queries) GetExperimentsForUser(ctx context.Context, userID uuid.UUID) (
 		return nil, err
 	}
 	return items, nil
+}
+
+const getUsersAndVisibilityOfExperiment = `-- name: GetUsersAndVisibilityOfExperiment :one
+SELECT
+    array_agg(ue.user_id)::uuid[] AS user_ids,
+    e.is_public
+FROM experiment e
+JOIN user_experiment ue
+    ON ue.experiment_id = e.id
+WHERE e.id = $1
+GROUP BY e.id, e.is_public
+`
+
+type GetUsersAndVisibilityOfExperimentRow struct {
+	UserIds  []uuid.UUID
+	IsPublic bool
+}
+
+func (q *Queries) GetUsersAndVisibilityOfExperiment(ctx context.Context, id uuid.UUID) (GetUsersAndVisibilityOfExperimentRow, error) {
+	row := q.db.QueryRowContext(ctx, getUsersAndVisibilityOfExperiment, id)
+	var i GetUsersAndVisibilityOfExperimentRow
+	err := row.Scan(pq.Array(&i.UserIds), &i.IsPublic)
+	return i, err
+}
+
+const toggleExperimentVisibility = `-- name: ToggleExperimentVisibility :one
+UPDATE experiment
+SET is_public = NOT is_public
+WHERE id = $1
+RETURNING is_public
+`
+
+func (q *Queries) ToggleExperimentVisibility(ctx context.Context, id uuid.UUID) (bool, error) {
+	row := q.db.QueryRowContext(ctx, toggleExperimentVisibility, id)
+	var is_public bool
+	err := row.Scan(&is_public)
+	return is_public, err
 }

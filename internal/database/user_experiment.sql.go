@@ -9,7 +9,6 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 const connectUserwithExperiment = `-- name: ConnectUserwithExperiment :exec
@@ -48,27 +47,4 @@ type DeleteExperimentParams struct {
 func (q *Queries) DeleteExperiment(ctx context.Context, arg DeleteExperimentParams) error {
 	_, err := q.db.ExecContext(ctx, deleteExperiment, arg.UserID, arg.ExperimentID)
 	return err
-}
-
-const getUsersAndVisibilityOfExperiment = `-- name: GetUsersAndVisibilityOfExperiment :one
-SELECT
-    array_agg(ue.user_id)::uuid[] AS user_ids,
-    e.is_public
-FROM experiment e
-JOIN user_experiment ue
-    ON ue.experiment_id = e.id
-WHERE e.id = $1
-GROUP BY e.id, e.is_public
-`
-
-type GetUsersAndVisibilityOfExperimentRow struct {
-	UserIds  []uuid.UUID
-	IsPublic bool
-}
-
-func (q *Queries) GetUsersAndVisibilityOfExperiment(ctx context.Context, id uuid.UUID) (GetUsersAndVisibilityOfExperimentRow, error) {
-	row := q.db.QueryRowContext(ctx, getUsersAndVisibilityOfExperiment, id)
-	var i GetUsersAndVisibilityOfExperimentRow
-	err := row.Scan(pq.Array(&i.UserIds), &i.IsPublic)
-	return i, err
 }

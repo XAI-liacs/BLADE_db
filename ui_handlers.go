@@ -203,7 +203,7 @@ func HandleRunCells(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "DB access error.", http.StatusInternalServerError)
 		return
 	}
-	runCells := components.RunCells(runs, slices.Contains(ownership_map.UserIds, user.ID), ownership_map.IsPublic)
+	runCells := components.RunCells(runs, experiment_id, slices.Contains(ownership_map.UserIds, user.ID), ownership_map.IsPublic)
 	runCells.Render(r.Context(), w)
 }
 
@@ -244,6 +244,45 @@ func HandleHtmlRunData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	components.RunData(solutions, conversationLog).Render(r.Context(), w)
+}
+
+func HandleHtmlVisibilityToggle(w http.ResponseWriter, r *http.Request) {
+	_, err := authenticate(r, "html")
+	if err != nil {
+		log.Println("Got unauthorised access to /html/togle_visibility" + err.Error())
+		http.Error(w, "Unauthorised access.", http.StatusUnauthorized)
+		return
+	}
+	experiment_id, err := uuid.Parse(r.URL.Query().Get("experiment_id"))
+	log.Println("Request URL:", r.URL.String())
+	if err != nil {
+		log.Println("Query error in /html/togle_visibility" + err.Error())
+		http.Error(w, "Bad access error, expected /html/toggle_visibility?experiment_id=<some uuid>", http.StatusBadRequest)
+		return
+	}
+
+	db, err := getDBConnection("deployment", r.Context(), true)
+	if err != nil {
+		log.Println("Unable to instantiate DB connection in /html/toggle_visibility: " + err.Error())
+		http.Error(w, "Internal DB error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	defer db.TX.Commit()
+
+	visibility, err := db.DB.ToggleExperimentVisibility(r.Context(), experiment_id)
+	if err != nil {
+		db.TX.Rollback()
+		log.Println("Unable to instantiate DB connection in /html/toggle_visibility: " + err.Error())
+		http.Error(w, "Internal DB error: "+err.Error(), http.StatusInternalServerError)
+	}
+
+	button := components.VisibilityIndicator(experiment_id, visibility)
+
+	if err := button.Render(r.Context(), w); err != nil {
+		http.Error(w, "Failed to render visibility indicator", http.StatusInternalServerError)
+		return
+	}
 }
 
 func preTestClear(dbConfig config.State) error {

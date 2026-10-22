@@ -1,15 +1,28 @@
 package components
 
-import "XAI-liacs/BLADE_db/internal/database"
+import (
+	"XAI-liacs/BLADE_db/internal/database"
+	"github.com/google/uuid"
+)
 
 
-templ RunCells(runs []database.Run, showVisibilityToggle, isActive bool) {
+templ VisibilityIndicator(identifier uuid.UUID, isActive bool) {
+	<button
+		id={identifier.String()}
+		type="button"
+		class={ "btn neumorphic-btn neumorphic-checkbox", templ.KV("neumorphic-checkbox_active", isActive) }
+		hx-patch={"/html/toggle_visibility?experiment_id="+identifier.String()}
+		hx-target="this"
+		hx-swap="outerHTML"
+	>
+	</button>
+}
+
+templ RunCells(runs []database.Run, forExperiment uuid.UUID, showVisibilityToggle, isActive bool) {
 	if showVisibilityToggle {
 		<div class="visibility neumorphic-inner">
 			<span>Visibility</span>
-		   	<button
-			    type="button"
-			    class={ "btn neumorphic-btn neumorphic-checkbox", templ.KV("neumorphic-checkbox_active", isActive) }></button>
+		   	@VisibilityIndicator(forExperiment, isActive)
 		</div>
 	}
 
