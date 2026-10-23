@@ -45,3 +45,17 @@ LEFT JOIN method AS m
 WHERE cl.run_id = $1
 
 ORDER BY cl.created_at;
+
+-- name: GetLLMForRun :many
+SELECT DISTINCT l.*
+FROM conversation_log cl
+JOIN llm l
+    ON l.id = cl.llm_id
+WHERE cl.run_id = $1;
+
+-- name: GetMethodsForRun :many
+SELECT DISTINCT m.*
+FROM conversation_log cl
+JOIN method m
+    ON m.id = cl.method_id
+WHERE cl.run_id = $1;

@@ -117,3 +117,77 @@ func (q *Queries) GetConversationLog(ctx context.Context, runID uuid.UUID) ([]Ge
 	}
 	return items, nil
 }
+
+const getLLMForRun = `-- name: GetLLMForRun :many
+SELECT DISTINCT l.id, l.model, l.hash, l.hardware, l.config
+FROM conversation_log cl
+JOIN llm l
+    ON l.id = cl.llm_id
+WHERE cl.run_id = $1
+`
+
+func (q *Queries) GetLLMForRun(ctx context.Context, runID uuid.UUID) ([]Llm, error) {
+	rows, err := q.db.QueryContext(ctx, getLLMForRun, runID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Llm
+	for rows.Next() {
+		var i Llm
+		if err := rows.Scan(
+			&i.ID,
+			&i.Model,
+			&i.Hash,
+			&i.Hardware,
+			&i.Config,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMethodsForRun = `-- name: GetMethodsForRun :many
+SELECT DISTINCT m.id, m.name, m.hash, m.source, m.config
+FROM conversation_log cl
+JOIN method m
+    ON m.id = cl.method_id
+WHERE cl.run_id = $1
+`
+
+func (q *Queries) GetMethodsForRun(ctx context.Context, runID uuid.UUID) ([]Method, error) {
+	rows, err := q.db.QueryContext(ctx, getMethodsForRun, runID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Method
+	for rows.Next() {
+		var i Method
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Hash,
+			&i.Source,
+			&i.Config,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

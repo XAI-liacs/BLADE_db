@@ -269,13 +269,14 @@ body {
 .neumorphic-card {
   display: block;
   background-color: var(--back-color);
-  padding: 40px;
+  padding: 20px;
   box-shadow: 7px 7px 15px rgba(55, 84, 170, .15),
   -7px -7px 20px rgba(255, 255, 255, 1),
   0px 0px 4px rgba(255, 255, 255, .2) !important;
   border-radius: 30px;
+  margin-bottom: 20px;
   /*max-width: 400px;*/
-  width: min-content;
+  /*width: min-content;*/
 }
 
 .neumorphic-card__title {
@@ -798,6 +799,23 @@ body {
   text-align: left;
 }
 
+.keyValuePairHead {
+    display: flex;
+    flex-direction: column;
+    padding-left: 10px;
+}
+
+.keyValuePairHead > .headTitle {
+    padding-left: 0px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.headTitle.value {
+    opacity: 0.6;
+}
+
 
 .keyValuePair {
   display: flex;
@@ -806,11 +824,13 @@ body {
   padding: 10px;
   gap: 10px;
   background-color: var(--back-color);
-
+  align-items: center;
 }
 
 .keyValuePair .key {
     width: min-content;
+    white-space: nowrap;
+    /*font-size: 1rem;*/
 }
 
 .keyValuePair .value {
@@ -925,4 +945,10 @@ body {
   visibility: visible;
   -webkit-animation: fadeIn 1s;
   animation: fadeIn 1s;
+}
+
+
+.modal-dialog {
+    background-color: var(--back-color);
+    border-radius: 30px;
 }

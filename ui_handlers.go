@@ -243,7 +243,7 @@ func HandleHtmlRunData(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	components.RunData(solutions, conversationLog).Render(r.Context(), w)
+	components.RunData(runID, solutions, conversationLog).Render(r.Context(), w)
 }
 
 func HandleHtmlVisibilityToggle(w http.ResponseWriter, r *http.Request) {
@@ -285,66 +285,44 @@ func HandleHtmlVisibilityToggle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func preTestClear(dbConfig config.State) error {
-	fmt.Println("\t=== Clearing all tables ===")
-	ctx := context.Background()
-	// Clear Relation Tables First.....
-	if err := dbConfig.DB.ClearUserExperiments(ctx); err != nil {
-		return err
+func HandleHtmlContributors(w http.ResponseWriter, r *http.Request) {
+	_, err := authenticate(r, "html")
+	if err != nil {
+		log.Println("Got unauthorised access to /html/contributors" + err.Error())
+		http.Error(w, "Unauthorised access.", http.StatusUnauthorized)
+		return
 	}
-	if err := dbConfig.DB.ClearRunDescriptor(ctx); err != nil {
-		return err
-	}
-	if err := dbConfig.DB.ClearConversationLog(ctx); err != nil {
-		return err
-	}
-	if err := dbConfig.DB.ClearMethodLLM(ctx); err != nil {
-		return err
-	}
-	if err := dbConfig.DB.ClearTagProblem(ctx); err != nil {
-		return err
-	}
-	if err := dbConfig.DB.ClearExperimentRun(ctx); err != nil {
-		return err
-	}
-	if err := dbConfig.DB.ClearParentChild(ctx); err != nil {
-		return err
-	}
-	if err := dbConfig.DB.ClearRunSolution(ctx); err != nil {
-		return err
+	run_id, err := uuid.Parse(r.URL.Query().Get("run_id"))
+	log.Println("Request URL:", r.URL.String())
+	if err != nil {
+		log.Println("Query error in /html/contributors" + err.Error())
+		http.Error(w, "Bad access error, expected /html/contributors?run_id=<some uuid>", http.StatusBadRequest)
+		return
 	}
 
-	// Clear Base Tables Later.....
+	db, err := getDBConnection("deployment", r.Context(), false)
+	if err != nil {
+		log.Println("Unable to instantiate DB connection in /html/contributors: " + err.Error())
+		http.Error(w, "Internal DB error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	if err := dbConfig.DB.ClearUsers(ctx); err != nil {
-		return err
+	methods, err := db.DB.GetMethodsForRun(r.Context(), run_id)
+	if err != nil {
+		log.Println("Unable to get methods for /html/contributors: " + err.Error())
+		http.Error(w, "Internal DB error: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
-	if err := dbConfig.DB.ClearLogBefore(ctx, time.Now()); err != nil {
-		return err
+
+	llms, err := db.DB.GetLLMForRun(r.Context(), run_id)
+	if err != nil {
+		log.Println("Unable to get LLMs for /html/contributors: " + err.Error())
+		http.Error(w, "Internal DB error: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
-	if err := dbConfig.DB.ClearTag(ctx); err != nil {
-		return err
+	modalView := components.ContributorsView(methods, llms)
+	if err := modalView.Render(r.Context(), w); err != nil {
+		http.Error(w, "Failed to render visibility indicator", http.StatusInternalServerError)
+		return
 	}
-	if err := dbConfig.DB.ClearRun(ctx); err != nil {
-		return err
-	}
-	if err := dbConfig.DB.ClearLLM(ctx); err != nil {
-		return err
-	}
-	if err := dbConfig.DB.ClearProblem(ctx); err != nil {
-		return err
-	}
-	if err := dbConfig.DB.ClearMessage(ctx); err != nil {
-		return err
-	}
-	if err := dbConfig.DB.ClearExperiment(ctx); err != nil {
-		return err
-	}
-	if err := dbConfig.DB.ClearMethod(ctx); err != nil {
-		return err
-	}
-	if err := dbConfig.DB.ClearSolution(ctx); err != nil {
-		return err
-	}
-	return nil
 }

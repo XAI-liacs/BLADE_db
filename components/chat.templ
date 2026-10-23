@@ -1,6 +1,9 @@
 package components
 
-import "XAI-liacs/BLADE_db/internal/database"
+import (
+	"XAI-liacs/BLADE_db/internal/database"
+	"github.com/google/uuid"
+)
 
 
 templ ChatBubble(message database.GetConversationLogRow) {
@@ -11,8 +14,13 @@ templ ChatBubble(message database.GetConversationLogRow) {
     </div>
 }
 
-templ ConversationLog(messages []database.GetConversationLogRow) {
-    <div class="chat" id="chat" hx-swap-oob="innerHTML">
+templ ConversationLog(run_id uuid.UUID, messages []database.GetConversationLogRow) {
+    <div
+        class="chat"
+        id="chat"
+        hx-swap-oob="outerHTML"
+        data-run-id={ run_id.String() }
+    >
         if len(messages) == 0 {
             @EmptyRightPanel("No chat data found...")
         } else {

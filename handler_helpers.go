@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 const maxUploadSize = 16 << 30 // 2 GB.
@@ -146,4 +147,68 @@ func authenticate(r *http.Request, root_endpoint string) (user database.User, er
 		return user, err
 	}
 	return user, nil
+}
+
+func preTestClear(dbConfig config.State) error {
+	fmt.Println("\t=== Clearing all tables ===")
+	ctx := context.Background()
+	// Clear Relation Tables First.....
+	if err := dbConfig.DB.ClearUserExperiments(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearRunDescriptor(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearConversationLog(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearMethodLLM(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearTagProblem(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearExperimentRun(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearParentChild(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearRunSolution(ctx); err != nil {
+		return err
+	}
+
+	// Clear Base Tables Later.....
+
+	if err := dbConfig.DB.ClearUsers(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearLogBefore(ctx, time.Now()); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearTag(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearRun(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearLLM(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearProblem(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearMessage(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearExperiment(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearMethod(ctx); err != nil {
+		return err
+	}
+	if err := dbConfig.DB.ClearSolution(ctx); err != nil {
+		return err
+	}
+	return nil
 }

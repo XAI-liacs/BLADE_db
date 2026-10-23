@@ -1,7 +1,6 @@
 package main
 
 import (
-	"XAI-liacs/BLADE_db/internal/config"
 	"fmt"
 	"net/http"
 
@@ -9,8 +8,8 @@ import (
 )
 
 func main() {
-	state := config.GetContext("deployment")
-	preTestClear(state)
+	// state := config.GetContext("deployment")
+	// preTestClear(state)
 
 	mux := http.NewServeMux()
 
@@ -21,6 +20,7 @@ func main() {
 	) //Serve scripts and styles as a filesystem downloadables.
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(r.URL.Path)
 		if r.URL.Path != "/" {
 			http.NotFound(w, r)
 			return
@@ -33,6 +33,7 @@ func main() {
 	mux.HandleFunc("/html/run_data", HandleHtmlRunData)
 	mux.HandleFunc("/html/experiments", HandleHtmlExperiment)
 	mux.HandleFunc("/html/toggle_visibility", HandleHtmlVisibilityToggle)
+	mux.HandleFunc("/html/contributors", HandleHtmlContributors)
 
 	mux.HandleFunc("/health", healthHandler) // Health check, returns ok, and supported blade verison as response.
 

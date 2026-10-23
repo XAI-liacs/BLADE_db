@@ -395,5 +395,10 @@ func TestCompleteMultiInjestion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	filehandlers.ImportAllExperimentUnder("./test_files", "test", id)
+	user, err := state.DB.GetUserWithID(context.Background(), id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	filehandlers.ImportAllExperimentUnder("./test_files", "test", user)
 }

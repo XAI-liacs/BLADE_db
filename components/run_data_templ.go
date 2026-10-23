@@ -8,9 +8,13 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "XAI-liacs/BLADE_db/internal/database"
+import (
+	"XAI-liacs/BLADE_db/internal/database"
+	"github.com/google/uuid"
+)
 
 func RunData(
+	run_id uuid.UUID,
 	solutions []database.Solution,
 	messages []database.GetConversationLogRow,
 ) templ.Component {
@@ -38,7 +42,7 @@ func RunData(
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = ConversationLog(messages).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = ConversationLog(run_id, messages).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

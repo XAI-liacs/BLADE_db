@@ -1,13 +1,17 @@
 package components
 
-import "XAI-liacs/BLADE_db/internal/database"
+import (
+	"XAI-liacs/BLADE_db/internal/database"
+	"github.com/google/uuid"
+)
 
 
 
 templ RunData(
+	run_id uuid.UUID,
     solutions []database.Solution,
     messages []database.GetConversationLogRow,
 ) {
     @SolutionList(solutions)
-    @ConversationLog(messages)
+    @ConversationLog(run_id, messages)
 }

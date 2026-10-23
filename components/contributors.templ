@@ -1,0 +1,103 @@
+package components
+
+import
+(
+	"XAI-liacs/BLADE_db/internal/database"
+	"fmt"
+)
+
+
+templ KeyValue(key string, value any) {
+	<div class="keyValuePair neumorhic-inner">
+		<span class="key">{key}</span>
+		<span class="key">{fmt.Sprintf("%v", value)}</span>
+	</div>
+}
+
+templ LLMView(llm database.Llm) {
+	{{
+		//unmarshal hardware and config here.
+		hardware, config := ParseLLM(llm)
+	}}
+	<div class="neumorphic-card">
+        <div class="title">
+            <div class="name-description">
+                <span class="sub-title">
+   	                LLM
+                </span>
+   	            <span>
+                	{llm.Model}
+   	            </span>
+            </div>
+        </div>
+        <div class="keyValuePairHead">
+            <span class="headTitle">
+                <span class="key">Hardware</span>
+                <span class="value material-symbols-outlined">keyboard_arrow_down</span>
+            </span>
+           	for key, value := range hardware {
+          		@KeyValue(key, value)
+           	}
+        </div>
+        <div class="keyValuePairHead">
+            <span class="headTitle">
+                <span class="key">Config</span>
+                <span class="value material-symbols-outlined">keyboard_arrow_down</span>
+            </span>
+           	for key, value := range config {
+          		@KeyValue(key, value)
+           	}
+        </div>
+    </div>
+}
+
+templ MethodView(method database.Method) {
+	{{
+		//unmarshal hardware and config here.
+		config := ParseMethod(method)
+	}}
+	<div class="neumorphic-card">
+		<div class="title">
+            <div class="name-description">
+                <span class="sub-title">
+   	                Method
+                </span>
+   	            <span>
+   	                {method.Name}
+   	            </span>
+                <span class="sub-title">
+   	                {method.Source}
+                </span>
+            </div>
+        </div>
+        <div class="keyValuePairHead">
+            <span class="headTitle">
+                <span class="key">Config</span>
+                <span class="value material-symbols-outlined">keyboard_arrow_down</span>
+            </span>
+           	for key, value := range config {
+          		@KeyValue(key, value)
+           	}
+        </div>
+    </div>
+}
+
+templ ContributorsView(methods []database.Method, llms []database.Llm) {
+    <div class="neumorphic-card">
+        <div class="modal-header">
+	        <h5 class="modal-title" id="modalViewLabel">Collaborators</h5>
+	        <button type="button" class="neumorphic-btn" data-dismiss="modal" aria-label="Close">
+            	<span class="material-symbols-outlined" aria-hidden="true">clear</span>
+	        </button>
+        </div>
+        <div class="modal-body">
+        <!--cards-->
+			for _, method := range methods {
+				@MethodView(method)
+			}
+			for _, llm := range llms {
+				@LLMView(llm)
+			}
+		</div>
+	</div>
+}
