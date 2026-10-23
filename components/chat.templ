@@ -15,18 +15,39 @@ templ ChatBubble(message database.GetConversationLogRow) {
 }
 
 templ ConversationLog(run_id uuid.UUID, messages []database.GetConversationLogRow) {
-    <div
-        class="chat"
-        id="chat"
-        hx-swap-oob="outerHTML"
-        data-run-id={ run_id.String() }
-    >
         if len(messages) == 0 {
-            @EmptyRightPanel("No chat data found...")
+		    <div
+		        class="chat"
+		        id="chat"
+		        hx-swap-oob="outerHTML"
+		    >
+            	@EmptyRightPanel("No chat data found...")
+			</div>
         } else {
-            for _, message := range messages {
-                @ChatBubble(message)
-            }
+        	<div id="chat" hx-swap-oob="outerHTML">
+		       	<div class="neumorphic-outer content-header">
+			        <button class="neumorphic-btn back-btn" onclick="SwitchView()">
+			            <span class="material-symbols-outlined">arrow_back</span>
+			        </button>
+			        <span>Conversation Log</span>
+			        <!-- <div class="header-spacer"></div> -->
+			        <button
+			            type="button"
+			            class="neumorphic-btn"
+			            data-toggle="modal"
+			            data-target="#modalView"
+			            hx-get={"/html/contributors?run_id="+run_id.String()}
+			            hx-target="#modalViewContent"
+			            hx-swap="innerHTML"
+			        >
+			            <span class="material-symbols-outlined">group</span>
+			        </button>
+			    </div>
+			    <div class="chat">
+		            for _, message := range messages {
+		                @ChatBubble(message)
+		            }
+			    </div>
+			</div>
         }
-    </div>
 }

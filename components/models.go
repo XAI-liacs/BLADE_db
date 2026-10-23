@@ -3,6 +3,8 @@ package components
 import (
 	"XAI-liacs/BLADE_db/internal/database"
 	"encoding/json"
+	"fmt"
+	"strings"
 )
 
 func renderMarkdown(message string) string {
@@ -43,4 +45,17 @@ func ParseMethod(llm database.Method) (config map[string]any) {
 		config = nil
 	}
 	return config
+}
+
+func CleanDictionary(dict map[string]any) map[string]string {
+	returndict := make(map[string]string)
+	for key, value := range dict {
+		key := strings.ReplaceAll(key, "_", " ")
+		if value == nil {
+			returndict[key] = "-"
+		} else {
+			returndict[key] = fmt.Sprintf("%v", value)
+		}
+	}
+	return returndict
 }

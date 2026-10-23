@@ -193,6 +193,10 @@ func SolutionList(solutions []database.Solution) templ.Component {
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div class=\"content-header neumorphic-outer\"><button class=\"neumorphic-btn back-btn\" onclick=\"SwitchView()\"><span class=\"material-symbols-outlined\">arrow_back</span></button> <span>Solution</span> <button class=\"neumorphic-btn\" data-toggle=\"modal\" data-target=\"#modalView\"><span class=\"material-symbols-outlined\">sort</span></button></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
 		for _, solution := range solutions {
 			templ_7745c5c3_Err = Solution(solution).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {

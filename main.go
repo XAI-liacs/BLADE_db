@@ -20,7 +20,6 @@ func main() {
 	) //Serve scripts and styles as a filesystem downloadables.
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.URL.Path)
 		if r.URL.Path != "/" {
 			http.NotFound(w, r)
 			return

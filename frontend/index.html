@@ -76,51 +76,13 @@
                                 <div class="neumorphic-tab-container__control" data-target="conversation-log">Conversation Log</div>
                             </div>
                             <div class="neumorphic-tab-container__tab neumorphic-tab-container__tab_shown" id="solutions">
-                                <div class="content-header neumorphic-outer">
-                                    <button class="neumorphic-btn back-btn" onclick="SwitchView()">
-                                        <span class="material-symbols-outlined">arrow_back</span>
-                                    </button>
-                                    <span>
-                                        Solution
-                                    </span>
-                                    <button class="neumorphic-btn"
-                                        data-toggle="modal"
-                                        data-target="#modalView"
-                                    >
-                                        <span class="material-symbols-outlined">
-                                            sort
-                                        </span>
-                                    </button>
+                                <div id="solution-panel" hx-get="/html/run_data" hx-trigger="load" hx-swap="innerHTML">
                                 </div>
-
-                                <div id="solution-panel"
-                                    hx-get="/html/run_data"
-                                    hx-trigger="load"
-                                    hx-swap="innerHTML"></div>
                             </div>
                             <div class="neumorphic-tab-container__tab" id="conversation-log">
-                                <div class="neumorphic-outer content-header">
-                                    <button class="neumorphic-btn back-btn" onclick="SwitchView()">
-                                        <span class="material-symbols-outlined">arrow_back</span>
-                                    </button>
-                                    <span>Conversation Log</span>
-                                    <!-- <div class="header-spacer"></div> -->
-                                    <button
-                                        type="button"
-                                        class="neumorphic-btn"
-                                        data-toggle="modal"
-                                        data-target="#modalView"
-                                        hx-get="/html/contributors"
-                                        hx-vals='js:{run_id: document.getElementById("chat").dataset.runId}'
-                                        hx-target="#contributorsContent"
-                                        hx-swap="innerHTML"
-                                    >
-                                        <span class="material-symbols-outlined">group</span>
-                                    </button>
-                                </div>
-
-
-                                <div class="chat" id="chat">
+                                <div id="chat">
+                                    <div hx-get="/html/run_data" hx-trigger="load" hx-swap="innerHTML">
+                                    </div>
                                 </div>
                             </div>
                         </div>

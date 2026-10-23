@@ -70,6 +70,21 @@ templ Solution(solution database.Solution) {
 
 
 templ SolutionList(solutions []database.Solution) {
+	<div class="content-header neumorphic-outer">
+        <button class="neumorphic-btn back-btn" onclick="SwitchView()">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <span>
+            Solution
+        </span>
+        <button class="neumorphic-btn"
+            data-toggle="modal"
+            data-target="#modalView">
+            <span class="material-symbols-outlined">
+                sort
+            </span>
+        </button>
+    </div>
 	for _, solution := range solutions {
 		@Solution(solution)
 	}

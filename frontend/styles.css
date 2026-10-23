@@ -951,4 +951,10 @@ body {
 .modal-dialog {
     background-color: var(--back-color);
     border-radius: 30px;
+    min-width: 70vw;
+}
+
+.modal-backdrop {
+    background-color: var(--back-color);
+   /*opacity: 0.8;*/
 }

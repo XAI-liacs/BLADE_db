@@ -293,7 +293,6 @@ func HandleHtmlContributors(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	run_id, err := uuid.Parse(r.URL.Query().Get("run_id"))
-	log.Println("Request URL:", r.URL.String())
 	if err != nil {
 		log.Println("Query error in /html/contributors" + err.Error())
 		http.Error(w, "Bad access error, expected /html/contributors?run_id=<some uuid>", http.StatusBadRequest)

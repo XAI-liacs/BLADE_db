@@ -8,7 +8,7 @@ import
 
 
 templ KeyValue(key string, value any) {
-	<div class="keyValuePair neumorhic-inner">
+	<div class="keyValuePair neumorphic-inner">
 		<span class="key">{key}</span>
 		<span class="key">{fmt.Sprintf("%v", value)}</span>
 	</div>
@@ -17,7 +17,8 @@ templ KeyValue(key string, value any) {
 templ LLMView(llm database.Llm) {
 	{{
 		//unmarshal hardware and config here.
-		hardware, config := ParseLLM(llm)
+		hardware_beta, config := ParseLLM(llm)
+		hardware := CleanDictionary(hardware_beta)
 	}}
 	<div class="neumorphic-card">
         <div class="title">
