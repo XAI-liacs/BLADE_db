@@ -2,7 +2,6 @@ package main
 
 import (
 	"XAI-liacs/BLADE_db/authentication"
-	"XAI-liacs/BLADE_db/internal/config"
 	"XAI-liacs/BLADE_db/internal/database"
 	"archive/zip"
 	"context"
@@ -80,36 +79,6 @@ func unzip(src, dest string) error {
 	return nil
 }
 
-// Retrieves the database state for the specified backend and starts a new database transaction.
-//
-// ## Params
-//
-// `for_backend: string`: Can be either "development" or "test" depending on which database is being targated.
-//
-// `context: context.Context` Context used to control the lifetime of the transaction.
-//
-// `with_transaction: bool`: Adds transction to the config.State.TX so the transaction can be commited/rejected.
-//
-// ## Returns:
-//
-// `state: config.State`: Returns the database state configured to use the newly started transaction.
-//
-// `error`: Returns an error if the transaction could not be started; otherwise, returns nil.
-func getDBConnection(for_backend string, ctx context.Context, with_transaction bool) (config.State, error) {
-	state := config.GetContext(for_backend)
-	if !with_transaction {
-		return state, nil
-	}
-	tx, err := state.DB_pointer.BeginTx(ctx, nil)
-	if err != nil {
-		return config.State{}, fmt.Errorf("unable to start transaction: %w", err)
-	}
-
-	state.DB = state.DB.WithTx(tx)
-	state.TX = tx
-	return state, nil
-}
-
 // Returns authentication the information about the user that was logged in.
 //
 // ## Params
@@ -122,7 +91,7 @@ func getDBConnection(for_backend string, ctx context.Context, with_transaction b
 //
 // `user: database.User`: Returns the user data from the database.
 // `is_valid: bool`: Return is the authentication token and associate user exists in db.
-func authenticate(r *http.Request, root_endpoint string) (user database.User, err error) {
+func (app *App) authenticate(r *http.Request, root_endpoint string) (user database.User, err error) {
 	var token string
 	fmt.Println("\t Authentication for " + r.URL.Path)
 	if root_endpoint == "html" {
@@ -138,76 +107,72 @@ func authenticate(r *http.Request, root_endpoint string) (user database.User, er
 		return user, err
 	}
 
-	state, err := getDBConnection("deployment", r.Context(), false)
-	if err != nil {
-		return user, err
-	}
-	user, err = state.DB.GetUserWithID(r.Context(), id)
+	user, err = app.State.DB.GetUserWithID(r.Context(), id)
 	if err != nil {
 		return user, err
 	}
 	return user, nil
 }
 
-func preTestClear(dbConfig config.State) error {
+func preTestClear(dbConfig App) error {
 	fmt.Println("\t=== Clearing all tables ===")
 	ctx := context.Background()
 	// Clear Relation Tables First.....
-	if err := dbConfig.DB.ClearUserExperiments(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearUserExperiments(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearRunDescriptor(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearRunDescriptor(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearConversationLog(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearConversationLog(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearMethodLLM(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearMethodLLM(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearTagProblem(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearTagProblem(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearExperimentRun(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearExperimentRun(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearParentChild(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearParentChild(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearRunSolution(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearRunSolution(ctx); err != nil {
 		return err
 	}
 
 	// Clear Base Tables Later.....
 
-	if err := dbConfig.DB.ClearUsers(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearUsers(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearLogBefore(ctx, time.Now()); err != nil {
+	if err := dbConfig.State.DB.ClearLogBefore(ctx, time.Now()); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearTag(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearTag(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearRun(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearRun(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearLLM(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearLLM(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearProblem(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearProblem(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearMessage(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearMessage(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearExperiment(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearExperiment(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearMethod(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearMethod(ctx); err != nil {
 		return err
 	}
-	if err := dbConfig.DB.ClearSolution(ctx); err != nil {
+	if err := dbConfig.State.DB.ClearSolution(ctx); err != nil {
 		return err
 	}
 	return nil

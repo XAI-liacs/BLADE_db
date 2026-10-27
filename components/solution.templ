@@ -61,8 +61,15 @@ templ Solution(solution database.Solution) {
             </div>
         </div>
         <div class="keyValuePair neumorphic-inner">
+        if len(solution.Parent) == 1 {
             <div class="key">Parent</div>
             <button class="material-symbols-outlined neumorphic-btn">north_east</button>
+        } else if len(solution.Parent) > 1 {
+            <div class="key">Parents</div>
+            <button class="material-symbols-outlined neumorphic-btn">north_east</button>
+        } else {
+
+        }
         </div>
     </div>
 

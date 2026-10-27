@@ -114,6 +114,7 @@ function presentPopup(message) {
 }
 
 function hidePopupAfterUpload() {
+  htmx.trigger(document.body, "refresh-experiments");
     clearTimeout(popupTimeout);
 
     popupTimeout = setTimeout(() => {

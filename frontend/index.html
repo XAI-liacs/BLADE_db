@@ -62,7 +62,7 @@
                             </div>
                             <div id="left-content"
                             hx-get="/html/experiments"
-                            hx-trigger="load"
+                            hx-trigger="load, refresh-experiments from:body"
                             hx-swap="innerHTML">
                                 <!--Left content.-->
                             </div>
@@ -98,7 +98,7 @@
         <!--Modal-->
         <div class="modal fade" id="modalView" tabindex="-1" role="dialog" aria-labelledby="modalViewLabel" aria-hidden="true">
             <div class="modal-dialog" role="document" id="modalViewContent">
-                <div class="title">Hello</div>
+                <div class="title p-2">Loading...</div>
             </div>
         </div>
 

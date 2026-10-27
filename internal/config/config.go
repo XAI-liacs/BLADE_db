@@ -2,8 +2,10 @@ package config
 
 import (
 	"XAI-liacs/BLADE_db/internal/database"
+	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"os"
 )
 
@@ -46,4 +48,30 @@ func GetContext(environment string) State {
 
 	app_state := State{DB: dbQueries, DB_pointer: db, DB_Path: dbURL}
 	return app_state
+}
+
+// Retrieves the database state for the specified backend and starts a new database transaction.
+//
+// ## Params
+//
+// `context: context.Context` Context used to control the lifetime of the transaction.
+//
+// ## Returns:
+//
+// `state: config.State`: Returns the database state configured to use the newly started transaction.
+//
+// `error`: Returns an error if the transaction could not be started; otherwise, returns nil.
+func (state *State) GetTransactionalState(ctx context.Context) (*State, error) {
+	tx, err := state.DB_pointer.BeginTx(ctx, nil)
+	if err != nil {
+		return &State{}, fmt.Errorf("unable to start transaction: %w", err)
+	}
+
+	db_connection := state.DB.WithTx(tx)
+	return &State{
+		DB_Path:    state.DB_Path,
+		DB:         db_connection,
+		DB_pointer: state.DB_pointer,
+		TX:         tx,
+	}, nil
 }

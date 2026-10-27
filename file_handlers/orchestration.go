@@ -39,13 +39,13 @@ type ProgressImportData struct {
  *
  * - `project_path : string`: Path to the root of the experiment, i.e., path where `progress.json` exist for a given experiment.
  * - `for_user: database.User`: User data for visibility setup, sets experiment visibility to that of user's default visibility.
- * - `state: State struct`: Contains db related functions.
+ * - `state: *State struct`: Contains db related functions.
  * - `db_scratch_pad: context.Context`: Allows for cancellable update of the database, if an error is encountered, context.cancel().
  *
  * ## Returns
  * - `progress_ids: ProgressImportData` for all future references.
  */
-func ImportProgress(project_path string, for_user database.User, state config.State, db_scratch_pad context.Context) (progress_info ProgressImportData, err error) {
+func ImportProgress(project_path string, for_user database.User, state *config.State, db_scratch_pad context.Context) (progress_info ProgressImportData, err error) {
 
 	// Step 1: Check if provided path is actually pwd for experiment (root dir must contain `progress.json`)
 	found_progress_json := false
@@ -135,13 +135,13 @@ func ImportProgress(project_path string, for_user database.User, state config.St
  *
  * - `path_descriptor : FileDetails`: Path to the root of the run, with Suffix=log.jsonl.
  * - `run_id : uuid.UUID[16]`: DB ID of the imported run; associated with the solution (see key, value pair of ProgressImportData.RunData)
- * - `state: State struct`: Contains db related functions.
+ * - `state: *State struct`: Contains db related functions.
  * - `db_scratch_pad: context.Context`: Allows for cancellable update of the database, if an error is encountered, context.cancel().
  *
  * ## Returns
  * - `solution_ids: []ID_Mapping` for all future references.
  */
-func ImportSolution(path_descriptor FileDetails, run_id uuid.UUID, state config.State, db_scratch_pad context.Context) (solution_ids []ID_Mapping, err error) {
+func ImportSolution(path_descriptor FileDetails, run_id uuid.UUID, state *config.State, db_scratch_pad context.Context) (solution_ids []ID_Mapping, err error) {
 	// Import all the solutions.
 	sl := SolutionLog{}
 
@@ -212,7 +212,7 @@ func ImportSolution(path_descriptor FileDetails, run_id uuid.UUID, state config.
  * ## Args
  *
  * - `path_descriptor : FileDetails`: Path to the root of the run, with Suffix=problem.json.
- * - `state: State struct`: Contains db related functions.
+ * - `state: *State struct`: Contains db related functions.
  * - `db_scratch_pad: context.Context`: Allows for cancellable update of the database, if an error is encountered, context.cancel().
  *
  * ## Returns
@@ -223,7 +223,7 @@ type ProblemTag struct {
 	TagIdentifiers    map[string]ID_Mapping //Tag to problem_id
 }
 
-func ImportProblem(path_descriptor FileDetails, state config.State, db_scratch_pad context.Context) (problem_descriptor ProblemTag, err error) {
+func ImportProblem(path_descriptor FileDetails, state *config.State, db_scratch_pad context.Context) (problem_descriptor ProblemTag, err error) {
 	p := Problem{}
 	problem_content, err := p.Read(path_descriptor)
 	if err != nil {
@@ -266,14 +266,14 @@ func ImportProblem(path_descriptor FileDetails, state config.State, db_scratch_p
  * ## Args
  *
  * - `path_descriptor : FileDetails`: Path to the root of the run, with Suffix=method.json.
- * - `state: State struct`: Contains db related functions.
+ * - `state: *State struct`: Contains db related functions.
  * - `db_scratch_pad: context.Context`: Allows for cancellable update of the database, if an error is encountered, context.cancel().
  *
  * ## Returns
  * - `method_id_mapping: ID_Mapping` for all future references.
  */
 
-func ImportMethod(path_descriptor FileDetails, state config.State, db_scratch_pad context.Context) (method_id_mapping ID_Mapping, err error) {
+func ImportMethod(path_descriptor FileDetails, state *config.State, db_scratch_pad context.Context) (method_id_mapping ID_Mapping, err error) {
 	m := Method{}
 	method_content, err := m.Read(path_descriptor)
 	if err != nil {
@@ -297,14 +297,14 @@ func ImportMethod(path_descriptor FileDetails, state config.State, db_scratch_pa
  * ## Args
  *
  * - `path_descriptor : FileDetails`: Path to the root of the run, with Suffix=llm.json.
- * - `state: State struct`: Contains db related functions.
+ * - `state: *State struct`: Contains db related functions.
  * - `db_scratch_pad: context.Context`: Allows for cancellable update of the database, if an error is encountered, context.cancel().
  *
  * ## Returns
  * - `llm_id_mappings: map[sting]ID_Mapping` for all future references (llm_model_name -> db_uuid mapping)
  */
 
-func ImportLLM(path_descriptor FileDetails, state config.State, db_scratch_pad context.Context) (llm_id_mappings map[string]ID_Mapping, err error) {
+func ImportLLM(path_descriptor FileDetails, state *config.State, db_scratch_pad context.Context) (llm_id_mappings map[string]ID_Mapping, err error) {
 	l := LLM{}
 	llm_id_mappings = make(map[string]ID_Mapping)
 	llm_content, err := l.Read(path_descriptor)
@@ -333,14 +333,14 @@ func ImportLLM(path_descriptor FileDetails, state config.State, db_scratch_pad c
  * - `run_id: uuid.UUID`: database id of run table for associate run log.
  * - `method_id: uuid.UUID`: database id of method table for associate run log.
  * - `llm_lookup: map[string]uuid.UUID`: llm.model -> llm.id mapping for database id of llms table for associate run log.
- * - `state: State struct`: Contains db related functions.
+ * - `state: *State struct`: Contains db related functions.
  * - `db_scratch_pad: context.Context`: Allows for cancellable update of the database, if an error is encountered, context.cancel().
  *
  * ## Returns
  * - `llm_id_mappings: []ID_Mapping` for all future references.
  */
 
-func ImportConversationLog(path_descriptor FileDetails, run_id, method_id uuid.UUID, llm_lookup map[string]ID_Mapping, state config.State, db_scratch_pad context.Context) (err error) {
+func ImportConversationLog(path_descriptor FileDetails, run_id, method_id uuid.UUID, llm_lookup map[string]ID_Mapping, state *config.State, db_scratch_pad context.Context) (err error) {
 	cl := ConversationLog{}
 	conversation_data, err := cl.Read(path_descriptor)
 	if err != nil {
@@ -386,7 +386,7 @@ func ImportConversationLog(path_descriptor FileDetails, run_id, method_id uuid.U
 }
 
 // Once Methods and LLM tables are updated, connect them.
-func ConnectMethodLLMs(method_id_mapping ID_Mapping, llm_id_mappings map[string]ID_Mapping, state config.State, db_scratch_pad context.Context) (err error) {
+func ConnectMethodLLMs(method_id_mapping ID_Mapping, llm_id_mappings map[string]ID_Mapping, state *config.State, db_scratch_pad context.Context) (err error) {
 	for _, llm := range llm_id_mappings {
 		err = state.DB.CreateMethodLLM(db_scratch_pad, database.CreateMethodLLMParams{
 			MethodID: method_id_mapping.DatabaseID,
@@ -401,7 +401,7 @@ func ConnectMethodLLMs(method_id_mapping ID_Mapping, llm_id_mappings map[string]
 
 // Once method, problem and run are imported, connect them in run_descriptor table.
 
-func ConnectRunDescriptor(run_id, method_id, problem_id uuid.UUID, state config.State, db_scratch_pad context.Context) (err error) {
+func ConnectRunDescriptor(run_id, method_id, problem_id uuid.UUID, state *config.State, db_scratch_pad context.Context) (err error) {
 	err = state.DB.CreateRunDescriptor(db_scratch_pad, database.CreateRunDescriptorParams{
 		RunID:     run_id,
 		MethodID:  method_id,
@@ -419,30 +419,22 @@ func ConnectRunDescriptor(run_id, method_id, problem_id uuid.UUID, state config.
  *
  * ## Args:
  * 	- `for_path: string` Path for directory with `progress.json` in it's root.
- *  - `env: string literal ['test' | 'deployment'], depending on wheter feature should work on test database, or production database.
+ *  - `state: &config.State: A transational instance of the state, for updating db, (state.TX != nil)
+ *  - `ctx: context.Context` A context associated with the transaction, most likely r.Context().
  *  - `for_user_id: uuid.UUID, Used to associate the experiment with the uploader.
  *
  * ## Returns:
  * - `err: Err` Error encountered during import of the experiment, nil, if success.
  */
-func ImportExperiment(for_path string, env string, for_user database.User) (err error) {
-	state := config.GetContext(env)
+func ImportExperiment(for_path string, state *config.State, ctx context.Context, for_user database.User) (err error) {
+	defer state.TX.Rollback()
 
-	db_scratch_pad := context.Background()
-
-	tx, err := state.DB_pointer.BeginTx(db_scratch_pad, nil)
-	if err != nil {
-		return errors.New("Unable to start transaction: " + err.Error())
-	}
-	defer tx.Rollback()
-	state.DB = state.DB.WithTx(tx)
-
-	progress_info, err := ImportProgress(for_path, for_user, state, db_scratch_pad) // progress_id, map[run_path]run_id
+	progress_info, err := ImportProgress(for_path, for_user, state, ctx) // progress_id, map[run_path]run_id
 	if err != nil {
 		return fmt.Errorf("Unable to import progress at path %s, error: %s", for_path, err.Error())
 	}
 
-	err = state.DB.ConnectUserwithExperiment(db_scratch_pad, database.ConnectUserwithExperimentParams{
+	err = state.DB.ConnectUserwithExperiment(ctx, database.ConnectUserwithExperimentParams{
 		UserID:       for_user.ID,
 		ExperimentID: progress_info.Experiment.DatabaseID,
 	})
@@ -457,7 +449,7 @@ func ImportExperiment(for_path string, env string, for_user database.User) (err 
 		problem_descriptor, err := ImportProblem(
 			path_descriptor,
 			state,
-			db_scratch_pad)
+			ctx)
 		if err != nil {
 			return fmt.Errorf("Unable to import problem at path %v, error: %s", path_descriptor, err.Error())
 		}
@@ -466,7 +458,7 @@ func ImportExperiment(for_path string, env string, for_user database.User) (err 
 		llm_map, err := ImportLLM(
 			path_descriptor,
 			state,
-			db_scratch_pad)
+			ctx)
 		if err != nil {
 			return fmt.Errorf("Unable to import llms from path %v, error: %s", path_descriptor, err.Error())
 		}
@@ -475,7 +467,7 @@ func ImportExperiment(for_path string, env string, for_user database.User) (err 
 		method_id, err := ImportMethod(
 			path_descriptor,
 			state,
-			db_scratch_pad)
+			ctx)
 		if err != nil {
 			return fmt.Errorf("Unable to import method from path %v, error: %s", path_descriptor, err.Error())
 		}
@@ -485,7 +477,7 @@ func ImportExperiment(for_path string, env string, for_user database.User) (err 
 			path_descriptor,
 			run_id.DatabaseID,
 			state,
-			db_scratch_pad)
+			ctx)
 		if err != nil {
 			return fmt.Errorf("Unable to import solutions from path %v, error: %s", path_descriptor, err.Error())
 		}
@@ -497,7 +489,7 @@ func ImportExperiment(for_path string, env string, for_user database.User) (err 
 			method_id.DatabaseID,
 			llm_map,
 			state,
-			db_scratch_pad)
+			ctx)
 		if err != nil {
 			return fmt.Errorf("Unable to import conversationlog from path %v, error: %s", path_descriptor, err.Error())
 		}
@@ -506,7 +498,7 @@ func ImportExperiment(for_path string, env string, for_user database.User) (err 
 			method_id,
 			llm_map,
 			state,
-			db_scratch_pad)
+			ctx)
 		if err != nil {
 			return fmt.Errorf("Unable to populate method_llm table error: %s", err.Error())
 		}
@@ -515,12 +507,12 @@ func ImportExperiment(for_path string, env string, for_user database.User) (err 
 			method_id.DatabaseID,
 			problem_descriptor.ProblemIdentifier.DatabaseID,
 			state,
-			db_scratch_pad)
+			ctx)
 		if err != nil {
 			return fmt.Errorf("Unable to populate run_descriptor table error: %s", err.Error())
 		}
 	}
-	return tx.Commit()
+	return state.TX.Commit()
 }
 
 /*
@@ -528,13 +520,14 @@ func ImportExperiment(for_path string, env string, for_user database.User) (err 
  *
  * ## Args:
  * 	- `for_path: string` Path for directory with `progress.json` in it's root.
- *  - `env: string literal ['test' | 'deployment']`:, depending on wheter feature should work on test database, or production database.
+ *  - `state: &config.State: A transational instance of the state, for updating db, (state.TX != nil)
+ *  - `ctx: context.Context` A context associated with the transaction, most likely r.Context().
  *  - `for_user_id: uuid.UUID` used to connect the experiment with the uploader.
  *
  * ## Returns:
  * - `errs: []error` Errors encountered during import of the experiments, [], if success.
  */
-func ImportAllExperimentUnder(directory string, env string, for_user database.User) (errs []error) {
+func ImportAllExperimentUnder(directory string, state *config.State, ctx context.Context, for_user database.User) (errs []error) {
 	path_regex := filepath.Join(directory, "*/progress.json")
 	projects, err := filepath.Glob(path_regex)
 	if err != nil {
@@ -542,22 +535,15 @@ func ImportAllExperimentUnder(directory string, env string, for_user database.Us
 	}
 
 	errs = make([]error, 0)
-	// Start new context for logging.
-	state := config.GetContext(env)
-
-	db_scratch_pad := context.Background()
-
-	tx, _ := state.DB_pointer.BeginTx(db_scratch_pad, nil)
-
-	defer tx.Rollback()
-	state.DB = state.DB.WithTx(tx)
+	// Start updating table with the experiment files.
+	defer state.TX.Rollback()
 
 	for _, project := range projects {
 		path := filepath.Dir(project)
-		if err = ImportExperiment(path, env, for_user); err != nil {
+		if err = ImportExperiment(path, state, ctx, for_user); err != nil {
 			errs = append(errs, err)
 		} else {
-			_ = state.DB.CreateLog(db_scratch_pad, database.CreateLogParams{
+			_ = state.DB.CreateLog(ctx, database.CreateLogParams{
 				ID:          uuid.New(),
 				Type:        "Experiment import success",
 				Message:     fmt.Sprintf("Imported experiment from %s", project),
@@ -569,7 +555,7 @@ func ImportAllExperimentUnder(directory string, env string, for_user database.Us
 
 	for _, err := range errs {
 		// Log the errors in log transaction.
-		_ = state.DB.CreateLog(db_scratch_pad, database.CreateLogParams{
+		_ = state.DB.CreateLog(ctx, database.CreateLogParams{
 			ID:          uuid.New(),
 			Type:        "Experiment import error",
 			Message:     err.Error(),
@@ -577,6 +563,6 @@ func ImportAllExperimentUnder(directory string, env string, for_user database.Us
 			CreatedAt:   time.Now(),
 		})
 	}
-	_ = tx.Commit()
+	_ = state.TX.Commit()
 	return errs
 }

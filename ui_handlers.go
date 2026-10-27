@@ -3,7 +3,6 @@ package main
 import (
 	"XAI-liacs/BLADE_db/authentication"
 	"XAI-liacs/BLADE_db/components"
-	"XAI-liacs/BLADE_db/internal/config"
 	"XAI-liacs/BLADE_db/internal/database"
 	"context"
 	"crypto/sha256"
@@ -18,15 +17,16 @@ import (
 	"github.com/google/uuid"
 )
 
-func signUpHandler(w http.ResponseWriter, r *http.Request) {
-	state := config.GetContext("deployment")
-	tx, err := state.DB_pointer.BeginTx(r.Context(), nil)
+// Pass with write context...
+func (app *App) signUpHandler(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	transactional_state, err := app.State.GetTransactionalState(r.Context())
+
 	if err != nil {
 		http.Error(w, "Unable to start transaction: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer tx.Rollback()
-	state.DB = state.DB.WithTx(tx)
 
 	err = r.ParseForm()
 	if err != nil {
@@ -48,14 +48,14 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = state.DB.GetUserNamed(r.Context(), username)
+	_, err = app.State.DB.GetUserNamed(r.Context(), username)
 	if err == nil {
 		http.Error(w, "User already exists.", http.StatusBadRequest)
 		return
 	}
 	pass_hash := sha256.Sum256([]byte(password))
 
-	_, err = state.DB.CreateUser(r.Context(), database.CreateUserParams{
+	_, err = transactional_state.DB.CreateUser(r.Context(), database.CreateUserParams{
 		ID:           uuid.New(),
 		Name:         username,
 		PasswordHash: pass_hash[:],
@@ -63,9 +63,10 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		http.Error(w, "Unable to create user, "+err.Error(), http.StatusInternalServerError)
+		transactional_state.TX.Rollback()
 		return
 	}
-	if err := tx.Commit(); err != nil {
+	if err := transactional_state.TX.Commit(); err != nil {
 		http.Error(w, "Unable to commit user creation: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -73,9 +74,7 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func loginHandler(w http.ResponseWriter, r *http.Request) {
-	state := config.GetContext("deployment")
-
+func (app *App) loginHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
@@ -84,7 +83,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	db_user, err := state.DB.GetUserNamed(r.Context(), username)
+	db_user, err := app.State.DB.GetUserNamed(r.Context(), username)
 	if err != nil {
 		http.Error(w, "User not signed up.", http.StatusBadRequest)
 		return
@@ -115,8 +114,8 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	_, err := authenticate(r, "html")
+func (app *App) homeHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := app.authenticate(r, "html")
 	if err != nil {
 		fmt.Println(err.Error())
 		tmpl, err := template.ParseFiles("frontend/login.html")
@@ -135,21 +134,15 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 }
 
-func HandleHtmlExperiment(w http.ResponseWriter, r *http.Request) {
+func (app *App) HandleHtmlExperiment(w http.ResponseWriter, r *http.Request) {
 	component := components.EmptyExperiment()
-	user, err := authenticate(r, "html")
+	user, err := app.authenticate(r, "html")
 	if err != nil {
 		component.Render(r.Context(), w)
 		return
 	}
 
-	state, err := getDBConnection("deployment", r.Context(), false)
-	if err != nil {
-		component.Render(r.Context(), w)
-		return
-	}
-
-	experiments, err := state.DB.GetExperimentsForUser(context.Background(), user.ID)
+	experiments, err := app.State.DB.GetExperimentsForUser(context.Background(), user.ID)
 	if err != nil {
 		component.Render(r.Context(), w)
 		return
@@ -163,8 +156,8 @@ func HandleHtmlExperiment(w http.ResponseWriter, r *http.Request) {
 	experiment_list.Render(r.Context(), w)
 }
 
-func HandleRunCells(w http.ResponseWriter, r *http.Request) {
-	user, err := authenticate(r, "html")
+func (app *App) HandleRunCells(w http.ResponseWriter, r *http.Request) {
+	user, err := app.authenticate(r, "html")
 	if err != nil {
 		log.Println("Got unauthorised access to /html/run" + err.Error())
 		http.Error(w, "Unauthorised access.", http.StatusUnauthorized)
@@ -179,14 +172,7 @@ func HandleRunCells(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := getDBConnection("deployment", r.Context(), false)
-	if err != nil {
-		log.Println("Unable to instantiate DB connection in /html/run: " + err.Error())
-		http.Error(w, "Internal DB error: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	ownership_map, err := db.DB.GetUsersAndVisibilityOfExperiment(r.Context(), experiment_id)
+	ownership_map, err := app.State.DB.GetUsersAndVisibilityOfExperiment(r.Context(), experiment_id)
 	if err != nil {
 		log.Println("Got error loading viewability in /html/run: ", err.Error())
 		http.Error(w, "DB error.", http.StatusInternalServerError)
@@ -197,7 +183,7 @@ func HandleRunCells(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	runs, err := db.DB.GetRunsForExperiment(r.Context(), experiment_id)
+	runs, err := app.State.DB.GetRunsForExperiment(r.Context(), experiment_id)
 	if err != nil {
 		log.Println("Got error loading runs for expreriment "+experiment_id.String()+" in /html/run: ", err.Error())
 		http.Error(w, "DB access error.", http.StatusInternalServerError)
@@ -207,22 +193,10 @@ func HandleRunCells(w http.ResponseWriter, r *http.Request) {
 	runCells.Render(r.Context(), w)
 }
 
-func HandleHtmlRunData(w http.ResponseWriter, r *http.Request) {
+func (app *App) HandleHtmlRunData(w http.ResponseWriter, r *http.Request) {
 	component := components.EmptyRightPanel("No runs selected.")
 
-	token, err := authentication.GetCookie(r.Header)
-	if err != nil {
-		component.Render(r.Context(), w)
-		return
-	}
-
-	_, err = authentication.ValidateJWT(token)
-	if err != nil {
-		component.Render(r.Context(), w)
-		return
-	}
-
-	state := config.GetContext("deployment")
+	app.authenticate(r, "html")
 
 	runID, err := uuid.Parse(r.URL.Query().Get("run_id"))
 	if err != nil {
@@ -230,13 +204,13 @@ func HandleHtmlRunData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	solutions, err := state.DB.GetSolutionsForRun(r.Context(), runID)
+	solutions, err := app.State.DB.GetSolutionsForRun(r.Context(), runID)
 	if err != nil {
 		component.Render(r.Context(), w)
 		return
 	}
 
-	conversationLog, err := state.DB.GetConversationLog(r.Context(), runID)
+	conversationLog, err := app.State.DB.GetConversationLog(r.Context(), runID)
 	if err != nil {
 		conversationLog = []database.GetConversationLogRow{}
 	}
@@ -246,8 +220,8 @@ func HandleHtmlRunData(w http.ResponseWriter, r *http.Request) {
 	components.RunData(runID, solutions, conversationLog).Render(r.Context(), w)
 }
 
-func HandleHtmlVisibilityToggle(w http.ResponseWriter, r *http.Request) {
-	_, err := authenticate(r, "html")
+func (app *App) HandleHtmlVisibilityToggle(w http.ResponseWriter, r *http.Request) {
+	_, err := app.authenticate(r, "html")
 	if err != nil {
 		log.Println("Got unauthorised access to /html/togle_visibility" + err.Error())
 		http.Error(w, "Unauthorised access.", http.StatusUnauthorized)
@@ -261,18 +235,18 @@ func HandleHtmlVisibilityToggle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := getDBConnection("deployment", r.Context(), true)
+	transaction_state, err := app.State.GetTransactionalState(r.Context())
 	if err != nil {
-		log.Println("Unable to instantiate DB connection in /html/toggle_visibility: " + err.Error())
+		log.Println("Unable to instantiate transaction DB connection in /html/toggle_visibility: " + err.Error())
 		http.Error(w, "Internal DB error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	defer db.TX.Commit()
+	defer transaction_state.TX.Commit()
 
-	visibility, err := db.DB.ToggleExperimentVisibility(r.Context(), experiment_id)
+	visibility, err := app.State.DB.ToggleExperimentVisibility(r.Context(), experiment_id)
 	if err != nil {
-		db.TX.Rollback()
+		app.State.TX.Rollback()
 		log.Println("Unable to instantiate DB connection in /html/toggle_visibility: " + err.Error())
 		http.Error(w, "Internal DB error: "+err.Error(), http.StatusInternalServerError)
 	}
@@ -285,8 +259,8 @@ func HandleHtmlVisibilityToggle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func HandleHtmlContributors(w http.ResponseWriter, r *http.Request) {
-	_, err := authenticate(r, "html")
+func (app *App) HandleHtmlContributors(w http.ResponseWriter, r *http.Request) {
+	_, err := app.authenticate(r, "html")
 	if err != nil {
 		log.Println("Got unauthorised access to /html/contributors" + err.Error())
 		http.Error(w, "Unauthorised access.", http.StatusUnauthorized)
@@ -299,21 +273,14 @@ func HandleHtmlContributors(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := getDBConnection("deployment", r.Context(), false)
-	if err != nil {
-		log.Println("Unable to instantiate DB connection in /html/contributors: " + err.Error())
-		http.Error(w, "Internal DB error: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	methods, err := db.DB.GetMethodsForRun(r.Context(), run_id)
+	methods, err := app.State.DB.GetMethodsForRun(r.Context(), run_id)
 	if err != nil {
 		log.Println("Unable to get methods for /html/contributors: " + err.Error())
 		http.Error(w, "Internal DB error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	llms, err := db.DB.GetLLMForRun(r.Context(), run_id)
+	llms, err := app.State.DB.GetLLMForRun(r.Context(), run_id)
 	if err != nil {
 		log.Println("Unable to get LLMs for /html/contributors: " + err.Error())
 		http.Error(w, "Internal DB error: "+err.Error(), http.StatusInternalServerError)
