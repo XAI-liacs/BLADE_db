@@ -5,6 +5,8 @@ import (
 	"XAI-liacs/BLADE_db/internal/database"
 	"archive/zip"
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
@@ -112,6 +114,16 @@ func (app *App) authenticate(r *http.Request, root_endpoint string) (user databa
 		return user, err
 	}
 	return user, nil
+}
+
+// Generate API key for the client access.....
+func GenerateAPIKey() (string, error) {
+	b := make([]byte, 32)
+
+	if _, err := rand.Read(b); err != nil {
+		return "", nil
+	}
+	return "blade_db-" + base64.RawURLEncoding.EncodeToString(b), nil
 }
 
 func preTestClear(dbConfig App) error {

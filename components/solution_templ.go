@@ -164,7 +164,20 @@ func Solution(solution database.Solution) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div></div><div class=\"keyValuePair neumorphic-inner\"><div class=\"key\">Parent</div><button class=\"material-symbols-outlined neumorphic-btn\">north_east</button></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div></div><div class=\"keyValuePair neumorphic-inner\"><div class=\"key\">Parent(s)</div><button type=\"button\" class=\"material-symbols-outlined neumorphic-btn\" data-toggle=\"modal\" data-target=\"#parentsModal\" data-solution-id=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var9 string
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue(solution.ID.String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/solution.templ`, Line: 73, Col: 55}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\">north_east</button></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -188,12 +201,12 @@ func SolutionList(solutions []database.Solution) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var9 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var9 == nil {
-			templ_7745c5c3_Var9 = templ.NopComponent
+		templ_7745c5c3_Var10 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var10 == nil {
+			templ_7745c5c3_Var10 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div class=\"content-header neumorphic-outer\"><button class=\"neumorphic-btn back-btn\" onclick=\"SwitchView()\"><span class=\"material-symbols-outlined\">arrow_back</span></button> <span>Solution</span> <button class=\"neumorphic-btn\" data-toggle=\"modal\" data-target=\"#modalView\"><span class=\"material-symbols-outlined\">sort</span></button></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"content-header neumorphic-outer\"><button class=\"neumorphic-btn back-btn\" onclick=\"SwitchView()\"><span class=\"material-symbols-outlined\">arrow_back</span></button> <span>Solution</span> <button class=\"neumorphic-btn\" data-toggle=\"modal\" data-target=\"#modalView\"><span class=\"material-symbols-outlined\">sort</span></button></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"unicode"
 )
 
 func renderMarkdown(message string) string {
@@ -58,4 +59,35 @@ func CleanDictionary(dict map[string]any) map[string]string {
 		}
 	}
 	return returndict
+}
+
+func getInitials(name string) string {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return ""
+	}
+
+	words := strings.FieldsFunc(name, func(r rune) bool {
+		return r == '_' || unicode.IsSpace(r)
+	})
+
+	if len(words) == 0 {
+		return ""
+	}
+
+	if len(words) >= 2 {
+		return strings.ToUpper(
+			string([]rune(words[0])[0]) +
+				string([]rune(words[1])[0]),
+		)
+	}
+
+	runes := []rune(words[0])
+	if len(runes) == 1 {
+		return strings.ToUpper(string(runes[0]))
+	}
+
+	return strings.ToUpper(
+		string(runes[0]) + string(runes[len(runes)-1]),
+	)
 }

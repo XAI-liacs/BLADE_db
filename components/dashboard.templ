@@ -1,0 +1,116 @@
+package components
+
+import "XAI-liacs/BLADE_db/internal/database"
+
+templ Dashboard(user database.User) {
+    {{
+        initials := getInitials(user.Name)
+        visibilityIcon := "lock"
+        visibilityText := "Private"
+
+        if user.DefaultVisibility {
+            visibilityIcon = "lock_open"
+            visibilityText = "Public"
+        }
+    }}
+
+    <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+            <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js" integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous"></script>
+            <link rel="stylesheet" href="frontend/styles.css">
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+            <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js" integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous"></script>
+            <title>BLADE DB</title>
+        </head>
+        <body>
+            <div class="site-header mx-auto py-5 px-2">
+	            <a href="/">
+	                <button class="logo-container neumorphic-btn pressed">
+	                    <img
+	                        src="frontend/src/logo-2-2.svg"
+	                        alt="Logo"
+	                        class="site-logo"
+	                    />
+	                    <div class="dot active"></div>
+	                </button>
+	            </a>
+                <a href="/">
+                	<button class="neumorphic-btn">
+	                    <span class="material-symbols-outlined">explore</span>
+	                </button>
+                </a>
+            </div>
+
+            <div class="neumorphic-outer dashboard">
+                <div class="neumorphic-card user-profile">
+                    <div class="neumorphic-image__wrapper">
+                        <div class="neumorphic-image__placeholder">
+                            { initials }
+                        </div>
+                    </div>
+
+                    <h4 class="neumorphic-card__title text-center">
+                        { user.Name }
+                    </h4>
+                </div>
+
+                <div class="control-button neumorphic-card" id="default-visibility">
+                    <button class="neumorphic-btn" type="button">
+                        <span class="material-symbols-outlined">
+                            { visibilityIcon }
+                        </span>
+                    </button>
+
+                    <h4 class="neumorphic-card__title text-center">
+                        Default Visibility
+                    </h4>
+
+                    <span>{ visibilityText }</span>
+                </div>
+
+                <div class="neumorphic-card api-key">
+                    <h4 class="neumorphic-card__title text-center">API Key</h4>
+
+                    <code>{ user.ApiKey }</code>
+
+                    <div class="controls">
+                        <button class="neumorphic-btn" type="button">
+                            <span class="material-symbols-outlined">
+                                content_copy
+                            </span>
+                        </button>
+
+                        <button class="neumorphic-btn" type="button">
+                            <span class="material-symbols-outlined">
+                                refresh
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="neumorphic-card control-button">
+                    <button class="neumorphic-btn" type="button">
+                        <span class="material-symbols-outlined">logout</span>
+                    </button>
+
+                    <h4 class="neumorphic-card__title">Sign Out</h4>
+                </div>
+            </div>
+
+            <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+            <script src="script.js"></script>
+            <script>
+                window.addEventListener("load", () => {
+                    const bgColor = getComputedStyle(document.documentElement)
+                        .getPropertyValue("--back-color").trim();
+
+                    document.body.style.backgroundColor = bgColor;
+                });
+            </script>
+        </body>
+    </html>
+
+}

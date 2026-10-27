@@ -55,10 +55,17 @@ func (app *App) signUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	pass_hash := sha256.Sum256([]byte(password))
 
+	api_key, err := GenerateAPIKey()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	_, err = transactional_state.DB.CreateUser(r.Context(), database.CreateUserParams{
 		ID:           uuid.New(),
 		Name:         username,
 		PasswordHash: pass_hash[:],
+		ApiKey:       api_key,
 		IsAdmin:      false,
 	})
 	if err != nil {
@@ -191,6 +198,16 @@ func (app *App) HandleRunCells(w http.ResponseWriter, r *http.Request) {
 	}
 	runCells := components.RunCells(runs, experiment_id, slices.Contains(ownership_map.UserIds, user.ID), ownership_map.IsPublic)
 	runCells.Render(r.Context(), w)
+}
+
+func (app *App) HandleHtmlDashboard(w http.ResponseWriter, r *http.Request) {
+	user, err := app.authenticate(r, "html")
+	if err != nil {
+		http.Error(w, "Unable to authorise user: "+err.Error(), http.StatusUnauthorized)
+		return
+	}
+	user_dashboard := components.Dashboard(user)
+	user_dashboard.Render(r.Context(), w)
 }
 
 func (app *App) HandleHtmlRunData(w http.ResponseWriter, r *http.Request) {

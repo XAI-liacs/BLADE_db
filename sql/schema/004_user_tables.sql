@@ -3,6 +3,7 @@ CREATE TABLE users (
     id UUID PRIMARY KEY,
     name TEXT UNIQUE NOT NULL,
     password_hash BYTEA NOT NULL,
+    api_key TEXT UNIQUE NOT NULL,
     default_visibility BOOL NOT NULL DEFAULT FALSE,
     is_admin BOOL NOT NULL DEFAULT FALSE
 );

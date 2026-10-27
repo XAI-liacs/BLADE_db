@@ -1,10 +1,11 @@
 -- name: CreateUser :one
-INSERT INTO users(id, name, password_hash, is_admin)
+INSERT INTO users(id, name, password_hash, api_key, is_admin)
 VALUES (
     $1,
     $2,
     $3,
-    $4
+    $4,
+    $5
 )  RETURNING id;
 
 -- name: GetUserNamed :one

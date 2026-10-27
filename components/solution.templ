@@ -61,15 +61,19 @@ templ Solution(solution database.Solution) {
             </div>
         </div>
         <div class="keyValuePair neumorphic-inner">
-        if len(solution.Parent) == 1 {
-            <div class="key">Parent</div>
-            <button class="material-symbols-outlined neumorphic-btn">north_east</button>
-        } else if len(solution.Parent) > 1 {
-            <div class="key">Parents</div>
-            <button class="material-symbols-outlined neumorphic-btn">north_east</button>
-        } else {
+            <div class="key">
+                    Parent(s)
+            </div>
 
-        }
+            <button
+                type="button"
+                class="material-symbols-outlined neumorphic-btn"
+                data-toggle="modal"
+                data-target="#parentsModal"
+                data-solution-id={ solution.ID.String() }
+            >
+                north_east
+            </button>
         </div>
     </div>
 

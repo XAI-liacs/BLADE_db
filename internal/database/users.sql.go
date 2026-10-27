@@ -12,12 +12,13 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users(id, name, password_hash, is_admin)
+INSERT INTO users(id, name, password_hash, api_key, is_admin)
 VALUES (
     $1,
     $2,
     $3,
-    $4
+    $4,
+    $5
 )  RETURNING id
 `
 
@@ -25,6 +26,7 @@ type CreateUserParams struct {
 	ID           uuid.UUID
 	Name         string
 	PasswordHash []byte
+	ApiKey       string
 	IsAdmin      bool
 }
 
@@ -33,6 +35,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UU
 		arg.ID,
 		arg.Name,
 		arg.PasswordHash,
+		arg.ApiKey,
 		arg.IsAdmin,
 	)
 	var id uuid.UUID
@@ -41,7 +44,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UU
 }
 
 const getUserNamed = `-- name: GetUserNamed :one
-SELECT id, name, password_hash, default_visibility, is_admin FROM users
+SELECT id, name, password_hash, api_key, default_visibility, is_admin FROM users
 WHERE name = $1
 LIMIT 1
 `
@@ -53,6 +56,7 @@ func (q *Queries) GetUserNamed(ctx context.Context, name string) (User, error) {
 		&i.ID,
 		&i.Name,
 		&i.PasswordHash,
+		&i.ApiKey,
 		&i.DefaultVisibility,
 		&i.IsAdmin,
 	)
@@ -60,7 +64,7 @@ func (q *Queries) GetUserNamed(ctx context.Context, name string) (User, error) {
 }
 
 const getUserWithID = `-- name: GetUserWithID :one
-SELECT id, name, password_hash, default_visibility, is_admin FROM users
+SELECT id, name, password_hash, api_key, default_visibility, is_admin FROM users
 WHERE ID = $1
 LIMIT 1
 `
@@ -72,6 +76,7 @@ func (q *Queries) GetUserWithID(ctx context.Context, id uuid.UUID) (User, error)
 		&i.ID,
 		&i.Name,
 		&i.PasswordHash,
+		&i.ApiKey,
 		&i.DefaultVisibility,
 		&i.IsAdmin,
 	)

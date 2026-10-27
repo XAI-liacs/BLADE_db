@@ -125,6 +125,7 @@ type User struct {
 	ID                uuid.UUID
 	Name              string
 	PasswordHash      []byte
+	ApiKey            string
 	DefaultVisibility bool
 	IsAdmin           bool
 }

@@ -19,7 +19,7 @@ func main() {
 		State: &state,
 	}
 
-	preTestClear(app)
+	// preTestClear(app)
 
 	mux := http.NewServeMux()
 
@@ -37,12 +37,14 @@ func main() {
 		app.homeHandler(w, r)
 	})
 
+	mux.HandleFunc("/dashboard", app.HandleHtmlDashboard)
+
 	mux.HandleFunc("/html/runs", app.HandleRunCells)
 	mux.HandleFunc("/html/submit", app.submitHandler) // Used to upload an experiment file to the server.
 	mux.HandleFunc("/html/run_data", app.HandleHtmlRunData)
 	mux.HandleFunc("/html/experiments", app.HandleHtmlExperiment)
-	mux.HandleFunc("/html/toggle_visibility", app.HandleHtmlVisibilityToggle)
 	mux.HandleFunc("/html/contributors", app.HandleHtmlContributors)
+	mux.HandleFunc("/html/toggle_visibility", app.HandleHtmlVisibilityToggle)
 
 	mux.HandleFunc("/health", healthHandler) // Health check, returns ok, and supported blade verison as response.
 

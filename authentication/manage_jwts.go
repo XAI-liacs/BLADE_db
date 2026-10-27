@@ -65,23 +65,36 @@ func ValidateJWT(tokenString string) (uuid.UUID, error) {
 func GetBearerToken(headers http.Header) (string, error) {
 	key := headers.Get("Authorization")
 	btPair := strings.Fields(key)
+
 	if len(btPair) != 2 {
-		return "", fmt.Errorf("(\"Bearer\", token) pair not found in http header.")
+		return "", fmt.Errorf(`("Bearer", token) pair not found in HTTP header`)
 	}
-	if btPair[0] != "Bearer" {
-		return "", fmt.Errorf("Keyword \"Bearer\" not found.")
+
+	if !strings.EqualFold(btPair[0], "Bearer") {
+		return "", fmt.Errorf(`keyword "Bearer" not found in HTTP header`)
 	}
+
 	return btPair[1], nil
 }
 
 func GetCookie(headers http.Header) (string, error) {
-	key := headers.Get("Cookie")
-	btPair := strings.Split(key, "=")
-	if len(btPair) != 2 {
-		return "", fmt.Errorf("(\"Bearer\", token) pair not found in http header -> cookie.")
+	cookieHeader := headers.Get("Cookie")
+	if cookieHeader == "" {
+		return "", fmt.Errorf("Cookie header not found")
 	}
-	if btPair[0] != "Bearer" {
-		return "", fmt.Errorf("Keyword \"Bearer\" not found header -> cookie.")
+
+	req := &http.Request{
+		Header: headers,
 	}
-	return btPair[1], nil
+
+	cookie, err := req.Cookie("Bearer")
+	if err != nil {
+		return "", fmt.Errorf(`cookie "Bearer" not found: %w`, err)
+	}
+
+	if cookie.Value == "" {
+		return "", fmt.Errorf(`cookie "Bearer" has an empty value`)
+	}
+
+	return cookie.Value, nil
 }
