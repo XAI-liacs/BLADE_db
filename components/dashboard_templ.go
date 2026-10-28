@@ -32,21 +32,14 @@ func Dashboard(user database.User) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		initials := getInitials(user.Name)
-		visibilityIcon := "lock"
-		visibilityText := "Private"
-
-		if user.DefaultVisibility {
-			visibilityIcon = "lock_open"
-			visibilityText = "Public"
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css\"><script src=\"https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js\" integrity=\"sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg\" crossorigin=\"anonymous\"></script><link rel=\"stylesheet\" href=\"frontend/styles.css\"><link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined\"><script src=\"https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js\" integrity=\"sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg\" crossorigin=\"anonymous\"></script><title>BLADE DB</title></head><body><div class=\"site-header mx-auto py-5 px-2\"><a href=\"/\"><button class=\"logo-container neumorphic-btn pressed\"><img src=\"frontend/src/logo-2-2.svg\" alt=\"Logo\" class=\"site-logo\"><div class=\"dot active\"></div></button></a> <a href=\"/\"><button class=\"neumorphic-btn\"><span class=\"material-symbols-outlined\">explore</span></button></a></div><div class=\"neumorphic-outer dashboard\"><div class=\"neumorphic-card user-profile\"><div class=\"neumorphic-image__wrapper\"><div class=\"neumorphic-image__placeholder\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><link rel=\"stylesheet\" href=\"frontend/styles.css\"><link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined\"><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css\"><script src=\"https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js\" integrity=\"sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg\" crossorigin=\"anonymous\"></script><title>BLADE DB</title></head><body><div class=\"site-header mx-auto py-5 px-2\"><a href=\"/\"><button class=\"logo-container neumorphic-btn pressed\"><img src=\"frontend/src/logo-2-2.svg\" alt=\"Logo\" class=\"site-logo\"><div class=\"dot active\"></div></button></a> <a href=\"/html/logout\"><button class=\"neumorphic-btn\" type=\"button\"><span class=\"material-symbols-outlined\">logout</span></button></a></div><div class=\"neumorphic-outer dashboard smooth\"><div class=\"neumorphic-card user-profile\"><div class=\"neumorphic-image__wrapper\"><div class=\"neumorphic-image__placeholder\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(initials)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/dashboard.templ`, Line: 51, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/dashboard.templ`, Line: 45, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -59,52 +52,34 @@ func Dashboard(user database.User) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(user.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/dashboard.templ`, Line: 56, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/dashboard.templ`, Line: 50, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</h4></div><div class=\"control-button neumorphic-card\" id=\"default-visibility\"><button class=\"neumorphic-btn\" type=\"button\"><span class=\"material-symbols-outlined\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</h4></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = DefaultVisibility(user.DefaultVisibility).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"neumorphic-card api-key\"><h4 class=\"neumorphic-card__title text-center\">API Key</h4><code id=\"api-key\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(visibilityIcon)
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(user.ApiKey)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/dashboard.templ`, Line: 63, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/dashboard.templ`, Line: 59, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</span></button><h4 class=\"neumorphic-card__title text-center\">Default Visibility</h4><span>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(visibilityText)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/dashboard.templ`, Line: 71, Col: 42}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span></div><div class=\"neumorphic-card api-key\"><h4 class=\"neumorphic-card__title text-center\">API Key</h4><code>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(user.ApiKey)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/dashboard.templ`, Line: 77, Col: 39}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</code><div class=\"controls\"><button class=\"neumorphic-btn\" type=\"button\"><span class=\"material-symbols-outlined\">content_copy</span></button> <button class=\"neumorphic-btn\" type=\"button\"><span class=\"material-symbols-outlined\">refresh</span></button></div></div><div class=\"neumorphic-card control-button\"><button class=\"neumorphic-btn\" type=\"button\"><span class=\"material-symbols-outlined\">logout</span></button><h4 class=\"neumorphic-card__title\">Sign Out</h4></div></div><script src=\"https://code.jquery.com/jquery-3.7.1.min.js\"></script><script src=\"script.js\"></script><script>\n                window.addEventListener(\"load\", () => {\n                    const bgColor = getComputedStyle(document.documentElement)\n                        .getPropertyValue(\"--back-color\").trim();\n\n                    document.body.style.backgroundColor = bgColor;\n                });\n            </script></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</code><div class=\"controls\"><button class=\"neumorphic-btn\" type=\"button\" onclick=\"copyApiKey()\"><span class=\"material-symbols-outlined\">content_copy</span></button> <button class=\"neumorphic-btn\" type=\"button\" hx-post=\"/html/update_api\" hx-target=\"#api-key\" hx-swap=\"innerHTML\"><span class=\"material-symbols-outlined\">refresh</span></button></div></div></div><script src=\"https://code.jquery.com/jquery-3.7.1.min.js\"></script><script src=\"frontend/script.js\"></script><script>\n                window.addEventListener(\"load\", () => {\n                    const bgColor = getComputedStyle(document.documentElement)\n                        .getPropertyValue(\"--back-color\").trim();\n\n                    document.body.style.backgroundColor = bgColor;\n                });\n            </script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

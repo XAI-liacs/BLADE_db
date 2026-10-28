@@ -52,6 +52,9 @@ func CleanDictionary(dict map[string]any) map[string]string {
 	returndict := make(map[string]string)
 	for key, value := range dict {
 		key := strings.ReplaceAll(key, "_", " ")
+		key = strings.ReplaceAll(key, "cpu", "CPU")
+		key = strings.ReplaceAll(key, "gpu", "GPU")
+		key = strings.ReplaceAll(key, "os", "OS")
 		if value == nil {
 			returndict[key] = "-"
 		} else {

@@ -162,9 +162,14 @@ htmx.on("htmx:afterRequest", function (event) {
     }
 });
 
+// Copy to clipboard.
+async function copyApiKey() {
+    const apiKey = document.getElementById("api-key").textContent.trim();
 
-// function presentPopup(message) {
-//   var popup = document.getElementById("upload-popup");
-//   popup.textContent = `Uploading ${message}...`;
-//   popup.classList.toggle("show");
-// }
+    try {
+        await navigator.clipboard.writeText(apiKey);
+        console.log("API key copied to clipboard!");
+    } catch (error) {
+        console.error("Failed to copy API key:", error);
+    }
+}

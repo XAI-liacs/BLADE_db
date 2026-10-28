@@ -1,0 +1,29 @@
+package components
+
+templ DefaultVisibility(isPublic bool) {
+	{{
+		visibilityIcon := "lock"
+        visibilityText := "Private"
+		if isPublic {
+            visibilityIcon = "lock_open"
+            visibilityText = "Public"
+        }
+    }}
+
+    <div class="control-button neumorphic-card" id="default-visibility">
+	    <button
+	        class="neumorphic-btn"
+	        type="button"
+	        hx-target="#default-visibility"
+	        hx-patch="/html/toggle_default_visibility"
+	        hx-swap="outerHTML">
+	        <span class="material-symbols-outlined">{visibilityIcon}</span>
+	    </button>
+
+        <h4 class="neumorphic-card__title text-center">
+            Default Visibility
+        </h4>
+
+        <span>{ visibilityText }</span>
+    </div>
+}

@@ -27,3 +27,8 @@ WHERE id = $1;
 UPDATE users
 SET password_hash = $2
 WHERE id = $1;
+
+-- name: UpdateAPIKey :exec
+UPDATE users
+SET api_key = $2
+WHERE id = $1;

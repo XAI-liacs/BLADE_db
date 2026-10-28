@@ -33,7 +33,7 @@ func MakeJWT(userID uuid.UUID, expiresIn time.Duration) (string, error) {
 	return tokenIdentifier, nil
 }
 
-// Returns the user id embedded in the
+// Returns the user id embedded in the token.
 func ValidateJWT(tokenString string) (uuid.UUID, error) {
 	claimer := jwt.RegisteredClaims{}
 	secret_string := os.Getenv("secret_string")

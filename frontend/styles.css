@@ -345,9 +345,13 @@ body {
 }
 
 .neumorphic-image__placeholder {
-  color: #565e74;
-  font-size: 30px;
-  padding: 25px 0 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #565e74;
+    font-size: 30px;
+    padding: 25px 0 0 0;
 }
 
 .card-collection .neumorphic-card {
@@ -1010,6 +1014,10 @@ body {
 
 
 .api-key > code {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     background-color: rgba(200, 200, 255, .5);
     padding: 5px;
     border-radius: 5px;
@@ -1020,4 +1028,8 @@ body {
     display: flex;
     flex-direction: row;
     gap: 10px;
+}
+
+.smooth {
+  transition: all 1s ease-in;
 }

@@ -121,6 +121,20 @@ func (app *App) loginHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "Bearer",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
 func (app *App) homeHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := app.authenticate(r, "html")
 	if err != nil {
@@ -208,6 +222,64 @@ func (app *App) HandleHtmlDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 	user_dashboard := components.Dashboard(user)
 	user_dashboard.Render(r.Context(), w)
+}
+
+func (app *App) HandleHtmlDefaultUserVisibility(w http.ResponseWriter, r *http.Request) {
+	user, err := app.authenticate(r, "html")
+	if err != nil {
+		http.Error(w, "Unable to authorise user: "+err.Error(), http.StatusUnauthorized)
+		return
+	}
+	writerContext, err := app.State.GetTransactionalState(r.Context())
+	defer writerContext.TX.Commit()
+	if err != nil {
+		http.Error(w, "Unable to get DB writer context: "+err.Error(), http.StatusInternalServerError)
+		writerContext.TX.Rollback()
+		return
+	}
+
+	if err = writerContext.DB.SetDefaultVisibility(r.Context(), database.SetDefaultVisibilityParams{
+		ID:                user.ID,
+		DefaultVisibility: !user.DefaultVisibility,
+	}); err != nil {
+		http.Error(w, "Unable to get update default visibility: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	user_dashboard := components.DefaultVisibility(!user.DefaultVisibility) //Relect DB change in fetched object..
+	user_dashboard.Render(r.Context(), w)
+}
+
+func (app *App) handleChangeAPIKey(w http.ResponseWriter, r *http.Request) {
+	user, err := app.authenticate(r, "html")
+	if err != nil {
+		http.Error(w, "Unauthorised access: "+err.Error(), http.StatusUnauthorized)
+		return
+	}
+	api, err := GenerateAPIKey()
+	if err != nil {
+		http.Error(w, "Unable to generate key: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	writerContext, err := app.State.GetTransactionalState(r.Context())
+	defer writerContext.TX.Commit()
+
+	if err != nil {
+		writerContext.TX.Rollback()
+		http.Error(w, "Unable to generate key: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err = writerContext.DB.UpdateAPIKey(r.Context(), database.UpdateAPIKeyParams{
+		ID:     user.ID,
+		ApiKey: api,
+	}); err != nil {
+		writerContext.TX.Rollback()
+		http.Error(w, "Unable to set api key: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Write([]byte(api))
 }
 
 func (app *App) HandleHtmlRunData(w http.ResponseWriter, r *http.Request) {

@@ -39,12 +39,15 @@ func main() {
 
 	mux.HandleFunc("/dashboard", app.HandleHtmlDashboard)
 
+	mux.HandleFunc("/html/logout", logoutHandler)
 	mux.HandleFunc("/html/runs", app.HandleRunCells)
 	mux.HandleFunc("/html/submit", app.submitHandler) // Used to upload an experiment file to the server.
 	mux.HandleFunc("/html/run_data", app.HandleHtmlRunData)
+	mux.HandleFunc("/html/update_api", app.handleChangeAPIKey)
 	mux.HandleFunc("/html/experiments", app.HandleHtmlExperiment)
 	mux.HandleFunc("/html/contributors", app.HandleHtmlContributors)
 	mux.HandleFunc("/html/toggle_visibility", app.HandleHtmlVisibilityToggle)
+	mux.HandleFunc("/html/toggle_default_visibility", app.HandleHtmlDefaultUserVisibility)
 
 	mux.HandleFunc("/health", healthHandler) // Health check, returns ok, and supported blade verison as response.
 

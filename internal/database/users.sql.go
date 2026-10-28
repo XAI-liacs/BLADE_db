@@ -99,6 +99,22 @@ func (q *Queries) SetDefaultVisibility(ctx context.Context, arg SetDefaultVisibi
 	return err
 }
 
+const updateAPIKey = `-- name: UpdateAPIKey :exec
+UPDATE users
+SET api_key = $2
+WHERE id = $1
+`
+
+type UpdateAPIKeyParams struct {
+	ID     uuid.UUID
+	ApiKey string
+}
+
+func (q *Queries) UpdateAPIKey(ctx context.Context, arg UpdateAPIKeyParams) error {
+	_, err := q.db.ExecContext(ctx, updateAPIKey, arg.ID, arg.ApiKey)
+	return err
+}
+
 const updatePassword = `-- name: UpdatePassword :exec
 UPDATE users
 SET password_hash = $2
