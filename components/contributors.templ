@@ -87,7 +87,14 @@ templ ContributorsView(methods []database.Method, llms []database.Llm) {
     <div class="neumorphic-card">
         <div class="modal-header">
 	        <h5 class="modal-title" id="modalViewLabel">Collaborators</h5>
-	        <button type="button" class="neumorphic-btn" data-dismiss="modal" aria-label="Close">
+	        <button type="button" class="neumorphic-btn"
+				hx-on:click="
+				document.querySelector('#modalView').classList.remove('show');
+				document.querySelector('#modalView').setAttribute('aria-hidden', 'true');
+		        document.querySelector('#modalViewContent').innerHTML = '<h4>Loading....</h4>';
+		        document.body.classList.remove('modal-open');
+				"
+				aria-label="Close">
             	<span class="material-symbols-outlined" aria-hidden="true">clear</span>
 	        </button>
         </div>

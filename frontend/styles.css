@@ -918,12 +918,15 @@ body {
 /* The actual popup */
 .popup .popuptext {
   visibility: hidden;
-  /*background-color: var(--back-color) 0.5;*/
+  min-width: 200px; /* Increase popup width */
+  max-width: 80vw; /* Prevent it from becoming too wide */
+  width: max-content;
+
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  text-align: center;
+  text-align: left;
   border-radius: 6px;
-  padding: 8px;
+  padding: 12px;
   position: absolute;
   z-index: 1;
   top: 150%;
@@ -931,7 +934,7 @@ body {
   margin-left: -80px;
   pointer-events: none;
   transition: opacity 1s ease-in;
-  max-width: 0.7 vw;
+  overflow-wrap: break-word;
 }
 
 /* Popup arrow */
@@ -955,16 +958,31 @@ body {
   animation: fadeIn 1s;
 }
 
+.modal {
+    background-color: color-mix(in srgb, var(--back-color) 70%, transparent);
+}
+
+#modalView {
+    display: none;
+}
+
+#modalViewContent {
+    pointer-events: auto;
+}
+
+#modalView.show {
+    display: block;
+    opacity: 1;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
 
 .modal-dialog {
     background-color: var(--back-color);
     border-radius: 30px;
     min-width: 70vw;
-}
-
-.modal-backdrop {
-    background-color: var(--back-color);
-   /*opacity: 0.8;*/
 }
 
 

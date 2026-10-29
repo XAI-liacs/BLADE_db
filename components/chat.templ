@@ -32,14 +32,16 @@ templ ConversationLog(run_id uuid.UUID, messages []database.GetConversationLogRo
 			        <span>Conversation Log</span>
 			        <!-- <div class="header-spacer"></div> -->
 			        <button
-			            type="button"
-			            class="neumorphic-btn"
-			            data-toggle="modal"
-			            data-target="#modalView"
-			            hx-get={"/html/contributors?run_id="+run_id.String()}
-			            hx-target="#modalViewContent"
-			            hx-swap="innerHTML"
-			        >
+					    type="button"
+					    class="neumorphic-btn"
+					    hx-on:click="
+					        document.querySelector('#modalView').classList.add('show');
+					        document.body.classList.add('modal-open');
+					    "
+					    hx-get={"/html/contributors?run_id="+run_id.String()}
+					    hx-target="#modalViewContent"
+					    hx-swap="innerHTML"
+						>
 			            <span class="material-symbols-outlined">group</span>
 			        </button>
 			    </div>

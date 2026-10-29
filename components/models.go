@@ -55,6 +55,10 @@ func CleanDictionary(dict map[string]any) map[string]string {
 		key = strings.ReplaceAll(key, "cpu", "CPU")
 		key = strings.ReplaceAll(key, "gpu", "GPU")
 		key = strings.ReplaceAll(key, "os", "OS")
+		if key == "memory" {
+			returndict[key] = fmt.Sprintf("%v MB", value)
+			continue
+		}
 		if value == nil {
 			returndict[key] = "-"
 		} else {
