@@ -966,10 +966,6 @@ body {
     display: none;
 }
 
-#modalViewContent {
-    pointer-events: auto;
-}
-
 #modalView.show {
     display: block;
     opacity: 1;
@@ -983,6 +979,7 @@ body.modal-open {
     background-color: var(--back-color);
     border-radius: 30px;
     min-width: 70vw;
+    pointer-events: auto;
 }
 
 

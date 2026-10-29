@@ -221,10 +221,6 @@ func ContributorsView(methods []database.Method, llms []database.Llm) templ.Comp
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"neumorphic-card\"><div class=\"modal-header\"><h5 class=\"modal-title\" id=\"modalViewLabel\">Collaborators</h5><button type=\"button\" class=\"neumorphic-btn\" hx-on:click=\"\n\t\t\t\tdocument.querySelector('#modalView').classList.remove('show');\n\t\t\t\tdocument.querySelector('#modalView').setAttribute('aria-hidden', 'true');\n\t\t        document.querySelector('#modalViewContent').innerHTML = '<h4>Loading....</h4>';\n\t\t        document.body.classList.remove('modal-open');\n\t\t\t\t\" aria-label=\"Close\"><span class=\"material-symbols-outlined\" aria-hidden=\"true\">clear</span></button></div><div class=\"modal-body\"><!--cards-->")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
 		for _, method := range methods {
 			templ_7745c5c3_Err = MethodView(method).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -236,10 +232,6 @@ func ContributorsView(methods []database.Method, llms []database.Llm) templ.Comp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div></div>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
 		}
 		return nil
 	})

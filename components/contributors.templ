@@ -84,28 +84,10 @@ templ MethodView(method database.Method) {
 }
 
 templ ContributorsView(methods []database.Method, llms []database.Llm) {
-    <div class="neumorphic-card">
-        <div class="modal-header">
-	        <h5 class="modal-title" id="modalViewLabel">Collaborators</h5>
-	        <button type="button" class="neumorphic-btn"
-				hx-on:click="
-				document.querySelector('#modalView').classList.remove('show');
-				document.querySelector('#modalView').setAttribute('aria-hidden', 'true');
-		        document.querySelector('#modalViewContent').innerHTML = '<h4>Loading....</h4>';
-		        document.body.classList.remove('modal-open');
-				"
-				aria-label="Close">
-            	<span class="material-symbols-outlined" aria-hidden="true">clear</span>
-	        </button>
-        </div>
-        <div class="modal-body">
-        <!--cards-->
-			for _, method := range methods {
-				@MethodView(method)
-			}
-			for _, llm := range llms {
-				@LLMView(llm)
-			}
-		</div>
-	</div>
+	for _, method := range methods {
+		@MethodView(method)
+	}
+	for _, llm := range llms {
+		@LLMView(llm)
+	}
 }

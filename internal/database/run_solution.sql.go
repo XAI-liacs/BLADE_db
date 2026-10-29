@@ -7,8 +7,11 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
+	"github.com/sqlc-dev/pqtype"
 )
 
 const createRunSolution = `-- name: CreateRunSolution :exec
@@ -30,22 +33,41 @@ func (q *Queries) CreateRunSolution(ctx context.Context, arg CreateRunSolutionPa
 }
 
 const getSolutionsForRun = `-- name: GetSolutionsForRun :many
-SELECT solution.id, solution.name, solution.description, solution.generation, solution.code, solution.metadata, solution.fitness
+SELECT s.id, s.name, s.description, s.generation, s.code, s.metadata, s.fitness,
+   COALESCE(
+    ARRAY(
+        SELECT sp.parent_id
+        FROM solution_parent_child sp
+        WHERE sp.child_id = s.id
+    ),
+    ARRAY []::uuid[]
+    )::uuid[] AS parents
 FROM run_solution rs
-JOIN solution
-    ON solution.id = rs.solution_id
+JOIN solution s
+    ON s.id = rs.solution_id
 WHERE rs.run_id = $1
 `
 
-func (q *Queries) GetSolutionsForRun(ctx context.Context, runID uuid.UUID) ([]Solution, error) {
+type GetSolutionsForRunRow struct {
+	ID          uuid.UUID
+	Name        sql.NullString
+	Description sql.NullString
+	Generation  sql.NullInt32
+	Code        sql.NullString
+	Metadata    pqtype.NullRawMessage
+	Fitness     pqtype.NullRawMessage
+	Parents     []uuid.UUID
+}
+
+func (q *Queries) GetSolutionsForRun(ctx context.Context, runID uuid.UUID) ([]GetSolutionsForRunRow, error) {
 	rows, err := q.db.QueryContext(ctx, getSolutionsForRun, runID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Solution
+	var items []GetSolutionsForRunRow
 	for rows.Next() {
-		var i Solution
+		var i GetSolutionsForRunRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
@@ -54,6 +76,7 @@ func (q *Queries) GetSolutionsForRun(ctx context.Context, runID uuid.UUID) ([]So
 			&i.Code,
 			&i.Metadata,
 			&i.Fitness,
+			pq.Array(&i.Parents),
 		); err != nil {
 			return nil, err
 		}

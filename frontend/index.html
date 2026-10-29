@@ -100,8 +100,22 @@
 
         <!--Modal-->
         <div class="modal fade" id="modalView" tabindex="-1" role="dialog" aria-labelledby="modalViewLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document" id="modalViewContent">
-                <div class="title p-2">Loading...</div>
+            <div class="modal-dialog neumporhic-card" role="document">
+                <div class="modal-header">
+                    <h4 id="modalViewTitle">Solution</h4>
+
+                    <button
+                        type="button"
+                        class="neumorphic-btn"
+                        onclick="closeModalView()"
+                        aria-label="Close"
+                    >
+                        <span class="material-symbols-outlined" aria-hidden="true">
+                            clear
+                        </span>
+                    </button>
+                </div>
+                <div id="modalViewContent" class="modal-body"></div>
             </div>
         </div>
 

@@ -1,8 +1,17 @@
 package components
 
-import "XAI-liacs/BLADE_db/internal/database"
+import (
+	"XAI-liacs/BLADE_db/internal/database"
+	// "fmt"
+)
 
-templ Solution(solution database.Solution) {
+templ Solution(solution database.GetSolutionsForRunRow) {
+	{{
+		parents := make([]any, 0)
+		for _, parent := range solution.Parents {
+			parents = append(parents, parent.String())
+		}
+	}}
 	<div class="neumorphic-outer solution" id={solution.ID.String()}>
         <div class="title">
             <div class="name-description">
@@ -60,27 +69,31 @@ templ Solution(solution database.Solution) {
 	                }
             </div>
         </div>
-        <div class="keyValuePair neumorphic-inner">
-            <div class="key">
-                    Parent(s)
-            </div>
+        if len(solution.Parents) > 0 {
+	        <div class="keyValuePair neumorphic-inner">
+	            <div class="key">
+	                if len(solution.Parents) > 1 {
+						Parents
+					} else {
+						Parent
+					}
+	            </div>
 
-            <button
-                type="button"
-                class="material-symbols-outlined neumorphic-btn"
-                data-toggle="modal"
-                data-target="#parentsModal"
-                data-solution-id={ solution.ID.String() }
-            >
-                north_east
-            </button>
-        </div>
+	            <button
+				    type="button"
+				    class="material-symbols-outlined neumorphic-btn"
+					hx-on:click={ templ.JSFuncCall("ShowSolutionsInModal", parents) }
+				    data-solution-id={ solution.ID.String() }>
+			    north_east
+			</button>
+	        </div>
+        }
     </div>
 
 }
 
 
-templ SolutionList(solutions []database.Solution) {
+templ SolutionList(solutions []database.GetSolutionsForRunRow) {
 	<div class="content-header neumorphic-outer">
         <button class="neumorphic-btn back-btn" onclick="SwitchView()">
             <span class="material-symbols-outlined">arrow_back</span>

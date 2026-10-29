@@ -134,14 +134,14 @@ func ConversationLog(run_id uuid.UUID, messages []database.GetConversationLogRow
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div id=\"chat\" hx-swap-oob=\"outerHTML\"><div class=\"neumorphic-outer content-header\"><button class=\"neumorphic-btn back-btn\" onclick=\"SwitchView()\"><span class=\"material-symbols-outlined\">arrow_back</span></button> <span>Conversation Log</span><!-- <div class=\"header-spacer\"></div> --><button type=\"button\" class=\"neumorphic-btn\" hx-on:click=\"\n\t\t\t\t\t        document.querySelector('#modalView').classList.add('show');\n\t\t\t\t\t        document.body.classList.add('modal-open');\n\t\t\t\t\t    \" hx-get=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div id=\"chat\" hx-swap-oob=\"outerHTML\"><div class=\"neumorphic-outer content-header\"><button class=\"neumorphic-btn back-btn\" onclick=\"SwitchView()\"><span class=\"material-symbols-outlined\">arrow_back</span></button> <span>Conversation Log</span><!-- <div class=\"header-spacer\"></div> --><button type=\"button\" class=\"neumorphic-btn\" hx-on:click=\"\n\t\t\t\t\t        document.querySelector('#modalView').classList.add('show');\n\t\t\t\t\t        document.body.classList.add('modal-open');\n\t\t\t\t\t\t\tdocument.querySelector('#modalViewTitle').textContent = 'Contributors'\n\t\t\t\t\t    \" hx-get=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue("/html/contributors?run_id=" + run_id.String())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/chat.templ`, Line: 41, Col: 61}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/chat.templ`, Line: 42, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 			if templ_7745c5c3_Err != nil {

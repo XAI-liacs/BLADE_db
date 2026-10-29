@@ -173,3 +173,40 @@ async function copyApiKey() {
         console.error("Failed to copy API key:", error);
     }
 }
+
+// Show parent for solution:
+function ShowSolutionsInModal(solutionIds) {
+    const modal = document.querySelector("#modalView");
+    const content = document.querySelector("#modalViewContent");
+    document.querySelector('#modalViewTitle').textContent = 'Solutions'
+    content.replaceChildren();
+
+  for (const id of solutionIds) {
+        const solution = document.getElementById(id);
+
+        if (!solution) continue;
+
+        const clone = solution.cloneNode(true);
+
+        // Remove the Parents key-value pair from the modal copy.
+        clone.querySelectorAll(".keyValuePair").forEach(pair => {
+            if (pair.querySelector("[data-solution-id]")) {
+                pair.remove();
+            }
+        });
+
+        content.appendChild(clone);
+    }
+
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+}
+
+function closeModalView() {
+    const modal = document.querySelector("#modalView");
+
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
+}

@@ -9,7 +9,7 @@ import (
 
 templ RunData(
 	run_id uuid.UUID,
-    solutions []database.Solution,
+    solutions []database.GetSolutionsForRunRow,
     messages []database.GetConversationLogRow,
 ) {
     @SolutionList(solutions)

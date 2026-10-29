@@ -295,6 +295,7 @@ func (app *App) HandleHtmlRunData(w http.ResponseWriter, r *http.Request) {
 
 	solutions, err := app.State.DB.GetSolutionsForRun(r.Context(), runID)
 	if err != nil {
+		fmt.Println(err.Error())
 		component.Render(r.Context(), w)
 		return
 	}

@@ -37,6 +37,7 @@ templ ConversationLog(run_id uuid.UUID, messages []database.GetConversationLogRo
 					    hx-on:click="
 					        document.querySelector('#modalView').classList.add('show');
 					        document.body.classList.add('modal-open');
+							document.querySelector('#modalViewTitle').textContent = 'Contributors'
 					    "
 					    hx-get={"/html/contributors?run_id="+run_id.String()}
 					    hx-target="#modalViewContent"
