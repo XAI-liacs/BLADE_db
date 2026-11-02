@@ -13,7 +13,7 @@
     <body>
         <div class="site-header mx-auto py-5 px-2">
             <a href="/dashboard">
-                <button class="logo-container neumorphic-btn">
+                <button class="neumorphic-btn logo-container">
                     <img src="/frontend/src/logo-2-2.svg" alt="Logo" class="site-logo">
                     <div class="dot"></div>
                 </button>
@@ -21,8 +21,8 @@
 
             <!--<div class="header-spacer"></div>-->
 
-            <div class="neumorphic-tab-container__controls neumorphic-outer">
-                <div class="neumorphic-tab-container__control neumorphic-tab-container__control_active" data-target="experiments">Experiments</div>
+            <div class="neumorphic-tab-container__controls neumorphic-outer" id="main">
+                <div class="neumorphic-tab-container__control neumorphic-tab-container__control_active" data-target="explore">Explore</div>
                 <div class="neumorphic-tab-container__control" data-target="leadboard">Leadboard</div>
             </div>
 
@@ -33,7 +33,7 @@
                     id="upload-button"
                     onclick="document.getElementById('zipFile').click()">
                 <span class="material-symbols-outlined">ios_share</span>
-                <span class="popuptext neumorphic-outer" id="upload-popup">
+                <span class="popuptext neumorphic-outer" style="pointer-events: none;" id="upload-popup">
                     Upload ZIP
                 </span>
             </button>
@@ -51,17 +51,93 @@
                 <input type="file" name="file" id="upload-file">
             </form>
         </div>
-            <div class="neumorphic-outer content">
-                <div class="neumorphic-tab-container__tab neumorphic-tab-container__tab_shown" id="experiments">
+            <div class="neumorphic-outer content neumorphic-tab-container" id="main">
+                <div class="neumorphic-tab-container__tab neumorphic-tab-container__tab_shown" id="explore">
                     <div class="inner_content">
                         <div class="navigation_view active neumorphic-inner" id="left-panel">
                             <div class="header">
                                 Experiments
-                                <button class="btn neumorphic-btn">
+                                <button class="btn neumorphic-btn"
+                                    hx-on:click="document.getElementById('category-popup').classList.toggle('show')">
                                     <span class="material-symbols-outlined">
                                         category
                                     </span>
                                 </button>
+                            </div>
+                            <div class="popup">
+                                <div class="popuptext neumorphic-card" style="border-radius: 20px;" id="category-popup">
+                                        <div class="neumorphic-tab-container__controls" id="category">
+                                            <div class="neumorphic-tab-container__control neumorphic-tab-container__control_active" data-target="experiments">Experiments</div>
+                                            <div class="neumorphic-tab-container__control" data-target="llms">LLMs</div>
+                                            <div class="neumorphic-tab-container__control" data-target="methods">Methods</div>
+                                        </div>
+
+                                    <div class="neumorphic-tab-container neumorphic-inner p-4" id="category">
+                                        <div class="neumorphic-tab-container__tab neumorphic-tab-container__tab_shown" id="experiments">
+                                            <!--Experiments-->
+                                            <form action="/html/experiments" class="filters">
+                                                <div class="filter-group">
+                                                    <label for="visibility" class="neumorphic-label">Created By:</label>
+                                                    <select name="visibility" class="neumorphic-input" id="visibility">
+                                                        <option value="all">All</option>
+                                                        <option value="personal">Personal</option>
+                                                        <option value="public">Public</option>
+                                                    </select>
+                                                </div>
+                                                <div class="filter-group">
+                                                    <label for="sort" class="neumorphic-label">Sort By:</label>
+                                                    <select name="sort" class="neumorphic-input" id="sort">
+                                                        <option value="date">Date</option>
+                                                        <option value="Name">Name</option>
+                                                    </select>
+                                                </div>
+
+                                                <button type="submit" class="neumorphic-btn">
+                                                    <span class="material-symbols-outlined">arrow_circle_right</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <div class="neumorphic-tab-container__tab" id="llms">
+                                            <!--LLMs-->
+                                            <form action="/html/llms" class="filters">
+                                                <div class="filter-group">
+                                                    <label for="llm-type" class="neumorphic-label">View LLMs:</label>
+                                                    <select name="llm-type" class="neumorphic-input" id="llm-type">
+                                                        <option value="all">All</option>
+                                                        <option value="local">Local</option>
+                                                        <option value="cloud">Cloud</option>
+                                                    </select>
+                                                </div>
+                                                <div class="filter-group">
+                                                    <label for="sort" class="neumorphic-label">Sort By:</label>
+                                                    <select name="sort" class="neumorphic-input" id="sort">
+                                                        <option value="Name">Name</option>
+                                                        <option value="top">Top</option>
+                                                    </select>
+                                                </div>
+
+                                                <button type="submit" class="neumorphic-btn">
+                                                    <span class="material-symbols-outlined">arrow_circle_right</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <div class="neumorphic-tab-container__tab" id="methods">
+                                            <form action="/html/methods" class="filters">
+                                                <div class="filter-group">
+                                                    <label for="sort" class="neumorphic-label">Sort By:</label>
+                                                    <select name="sort" class="neumorphic-input" id="sort">
+                                                        <option value="Name">Name</option>
+                                                        <option value="top">Top</option>
+                                                    </select>
+                                                </div>
+
+                                                <button type="submit" class="neumorphic-btn">
+                                                    <span class="material-symbols-outlined">arrow_circle_right</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div id="left-content"
                             hx-get="/html/experiments"
@@ -73,22 +149,10 @@
 
 
                     <div class="navigation_view leaf neumorphic-inner" id="right-panel">
-                        <div class="neumorphic-tab-container">
-                            <div class="neumorphic-tab-container__controls">
-                                <div class="neumorphic-tab-container__control neumorphic-tab-container__control_active" data-target="solutions">Solutions</div>
-                                <div class="neumorphic-tab-container__control" data-target="conversation-log">Conversation Log</div>
-                            </div>
-                            <div class="neumorphic-tab-container__tab neumorphic-tab-container__tab_shown" id="solutions">
-                                <div id="solution-panel" hx-get="/html/run_data" hx-trigger="load" hx-swap="innerHTML">
-                                </div>
-                            </div>
-                            <div class="neumorphic-tab-container__tab" id="conversation-log">
-                                <div id="chat">
-                                    <div hx-get="/html/run_data" hx-trigger="load" hx-swap="innerHTML">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="neumorphic-outer empty-view">
+                    	    <span class="material-symbols-outlined">report</span>
+                    	    Nothing selected.
+                    	</div>
                     </div>
                 </div>
             </div>
@@ -100,7 +164,7 @@
 
         <!--Modal-->
         <div class="modal fade" id="modalView" tabindex="-1" role="dialog" aria-labelledby="modalViewLabel" aria-hidden="true">
-            <div class="modal-dialog neumporhic-card" role="document">
+            <div class="modal-dialog neumorphic-card" role="document">
                 <div class="modal-header">
                     <h4 id="modalViewTitle">Solution</h4>
 

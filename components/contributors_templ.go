@@ -92,20 +92,35 @@ func LLMView(llm database.Llm) templ.Component {
 		//unmarshal hardware and config here.
 		hardware_beta, config := ParseLLM(llm)
 		hardware := CleanDictionary(hardware_beta)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"neumorphic-card\"><div class=\"title\"><div class=\"name-description\"><span class=\"sub-title\">LLM</span> <span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"neumorphic-card\"><div class=\"title\"><div class=\"name-description\"><span class=\"sub-title\">LLM</span> <span style=\"display: flex; flex-direction: row; align-content: center; gap: 5px;\"><span class=\"material-symbols-outlined\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if hardware_beta == nil {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "cloud")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "desktop_mac")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</span> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(llm.Model)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/contributors.templ`, Line: 30, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/contributors.templ`, Line: 37, Col: 26}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span></div></div><div class=\"keyValuePairHead\"><span class=\"headTitle\"><span class=\"key\">Hardware</span> <span class=\"value material-symbols-outlined\">keyboard_arrow_down</span></span> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</span></div></div><div class=\"keyValuePairHead\"><span class=\"headTitle\"><span class=\"key\">Hardware</span> <span class=\"value material-symbols-outlined\">keyboard_arrow_down</span></span> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -115,7 +130,7 @@ func LLMView(llm database.Llm) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div class=\"keyValuePairHead\"><span class=\"headTitle\"><span class=\"key\">Config</span> <span class=\"value material-symbols-outlined\">keyboard_arrow_down</span></span> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div class=\"keyValuePairHead\"><span class=\"headTitle\"><span class=\"key\">Config</span> <span class=\"value material-symbols-outlined\">keyboard_arrow_down</span></span> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -125,7 +140,7 @@ func LLMView(llm database.Llm) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -156,33 +171,33 @@ func MethodView(method database.Method) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		//unmarshal hardware and config here.
 		config := ParseMethod(method)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"neumorphic-card\"><div class=\"title\"><div class=\"name-description\"><span class=\"sub-title\">Method</span> <span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"neumorphic-card\"><div class=\"title\"><div class=\"name-description\"><span class=\"sub-title\">Method</span> <span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(method.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/contributors.templ`, Line: 67, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/contributors.templ`, Line: 74, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</span> <span class=\"sub-title\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span> <span class=\"sub-title\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(method.Source)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/contributors.templ`, Line: 70, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/contributors.templ`, Line: 77, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span></div></div><div class=\"keyValuePairHead\"><span class=\"headTitle\"><span class=\"key\">Config</span> <span class=\"value material-symbols-outlined\">keyboard_arrow_down</span></span> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></div></div><div class=\"keyValuePairHead\"><span class=\"headTitle\"><span class=\"key\">Config</span> <span class=\"value material-symbols-outlined\">keyboard_arrow_down</span></span> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -192,7 +207,7 @@ func MethodView(method database.Method) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

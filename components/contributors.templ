@@ -26,8 +26,15 @@ templ LLMView(llm database.Llm) {
                 <span class="sub-title">
    	                LLM
                 </span>
-   	            <span>
-                	{llm.Model}
+   	            <span style="display: flex; flex-direction: row; align-content: center; gap: 5px;">
+	               	<span class="material-symbols-outlined">
+	                if hardware_beta == nil {
+						cloud
+	                } else {
+						desktop_mac
+					}
+	                </span>
+                {llm.Model}
    	            </span>
             </div>
         </div>

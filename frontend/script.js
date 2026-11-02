@@ -2,24 +2,30 @@ $('.neumorphic-checkbox').on('click', function () {
     $(this).toggleClass('neumorphic-checkbox_active');
 });
 
-$('.neumorphic-tab-container__control').on('click', function () {
+$(document).on('click', '.neumorphic-tab-container__control', function () {
     const $control = $(this);
 
     if ($control.hasClass('neumorphic-tab-container__control_active')) {
         return false;
     }
 
-    // Find the tab container this control belongs to
-    const $container = $control.closest('.neumorphic-tab-container');
+    // Get the controls wrapper and its ID
+    const $controls = $control.closest('.neumorphic-tab-container__controls');
+  const controlsId = $controls.attr('id');
+  console.log("Clicked tab view with id: ", controlsId)
+    // Find the matching tab container
+    const $container = $('.neumorphic-tab-container').filter(function () {
+        return this.id === controlsId;
+    }).first();
 
-    // Only deactivate controls in this container
-    $container
-        .find('> .neumorphic-tab-container__controls > .neumorphic-tab-container__control')
+    // Update only controls belonging to this controls wrapper
+    $controls
+        .children('.neumorphic-tab-container__control')
         .removeClass('neumorphic-tab-container__control_active');
 
-    // Only hide tabs in this container
+    // Update ONLY direct child tabs of the matching container
     $container
-        .find('> .neumorphic-tab-container__tab')
+        .children('.neumorphic-tab-container__tab')
         .removeClass('neumorphic-tab-container__tab_shown');
 
     // Activate clicked control
@@ -29,7 +35,10 @@ $('.neumorphic-tab-container__control').on('click', function () {
     const target = $control.data('target');
 
     $container
-        .find('> #' + target)
+        .children('.neumorphic-tab-container__tab')
+        .filter(function () {
+            return this.id === target;
+        })
         .addClass('neumorphic-tab-container__tab_shown');
 });
 

@@ -50,6 +50,9 @@ func ParseMethod(llm database.Method) (config map[string]any) {
 
 func CleanDictionary(dict map[string]any) map[string]string {
 	returndict := make(map[string]string)
+	if dict == nil {
+		return returndict
+	}
 	for key, value := range dict {
 		key := strings.ReplaceAll(key, "_", " ")
 		key = strings.ReplaceAll(key, "cpu", "CPU")

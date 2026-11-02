@@ -38,11 +38,23 @@ func RunData(
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"neumorphic-tab-container__controls\" id=\"run-data\"><div class=\"neumorphic-tab-container__control neumorphic-tab-container__control_active\" data-target=\"solutions\">Solutions</div><div class=\"neumorphic-tab-container__control\" data-target=\"conversation-log\">Chat</div></div><div class=\"neumorphic-tab-container\" id=\"run-data\"><div class=\"neumorphic-tab-container__tab neumorphic-tab-container__tab_shown\" id=\"solutions\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
 		templ_7745c5c3_Err = SolutionList(solutions).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div class=\"neumorphic-tab-container__tab\" id=\"conversation-log\"><div id=\"chat\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
 		templ_7745c5c3_Err = ConversationLog(run_id, messages).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

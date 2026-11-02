@@ -122,7 +122,7 @@ func RunCells(runs []database.Run, forExperiment uuid.UUID, showVisibilityToggle
 			}
 		}
 		for _, run := range runs {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<button type=\"button\" class=\"run-cell btn\" hx-get=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<button type=\"button\" class=\"run-cell neumorphic-btn\" hx-get=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -135,7 +135,7 @@ func RunCells(runs []database.Run, forExperiment uuid.UUID, showVisibilityToggle
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" hx-target=\"#solution-panel\" hx-swap=\"innerHTML\" onClick=\"SwitchView()\"><div class=\"title\"><span class=\"material-symbols-outlined\">terminal</span><div class=\"name\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" hx-target=\"#right-panel\" hx-swap=\"innerHTML\" onClick=\"SwitchView()\"><div class=\"title\"><span class=\"material-symbols-outlined\">terminal</span><div class=\"name\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

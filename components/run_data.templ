@@ -12,6 +12,18 @@ templ RunData(
     solutions []database.GetSolutionsForRunRow,
     messages []database.GetConversationLogRow,
 ) {
-    @SolutionList(solutions)
-    @ConversationLog(run_id, messages)
+	<div class="neumorphic-tab-container__controls" id="run-data">
+	    <div class="neumorphic-tab-container__control neumorphic-tab-container__control_active" data-target="solutions">Solutions</div>
+	    <div class="neumorphic-tab-container__control" data-target="conversation-log">Chat</div>
+	</div>
+	<div class="neumorphic-tab-container" id="run-data">
+	    <div class="neumorphic-tab-container__tab neumorphic-tab-container__tab_shown" id="solutions">
+		    @SolutionList(solutions)
+	    </div>
+	    <div class="neumorphic-tab-container__tab" id="conversation-log">
+	        <div id="chat">
+			    @ConversationLog(run_id, messages)
+	        </div>
+	    </div>
+	</div>
 }

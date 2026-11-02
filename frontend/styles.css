@@ -41,9 +41,8 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 70px;
     width: 70px;
-    gap: -4px;
+    height: 70px;
 }
 
 .logo-container .dot {
@@ -52,7 +51,6 @@ body {
     border-radius: 50%;
     background-color: lightgray;
     display: block;
-    flex-shrink: 0;
 }
 
 .logo-container .dot.active {
@@ -309,7 +307,6 @@ body {
   color: #868b98;
   display: block;
   text-align: start;
-  margin: 25px 10px 5px;
 }
 
 .neumorphic-input {
@@ -528,6 +525,12 @@ body {
 .navigation_view.leaf {
   flex: 1;
   padding-inline: 20px;
+}
+
+.navigation_view.leaf > .neumorphic-tab-container__controls {
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .navigation_view.leaf .content-header {
@@ -790,7 +793,6 @@ body {
 }
 
 .title .sub-title {
-
     direction: column;
     text-align: left;
     font-size: 0.8rem;
@@ -810,14 +812,15 @@ body {
 .keyValuePairHead {
     display: flex;
     flex-direction: column;
-    padding-left: 10px;
 }
 
 .keyValuePairHead > .headTitle {
-    padding-left: 0px;
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
+}
+
+.keyValuePairHead > .keyValuePairHead {
+    margin-left: 5px;
 }
 
 .headTitle.value {
@@ -832,13 +835,17 @@ body {
   padding: 10px;
   gap: 10px;
   background-color: var(--back-color);
-  align-items: center;
+  align-items: flex-start;
+}
+
+.keyValuePairHead > .keyValuePair {
+    margin-left: 5px;
 }
 
 .keyValuePair .key {
     width: min-content;
     white-space: nowrap;
-    /*font-size: 1rem;*/
+    font-size: 1rem;
 }
 
 .keyValuePair .value {
@@ -917,38 +924,39 @@ body {
 
 /* The actual popup */
 .popup .popuptext {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   visibility: hidden;
   min-width: 200px; /* Increase popup width */
   max-width: 80vw; /* Prevent it from becoming too wide */
   width: max-content;
-
+  row-gap: 20px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  background-color: color-mix(in srgb, var(--back-color) 60%, transparent);
   text-align: left;
+
   border-radius: 6px;
   padding: 12px;
   position: absolute;
   z-index: 1;
   top: 150%;
-  right: 0;
-  margin-left: -80px;
-  pointer-events: none;
+  right: 15px;
+  margin-top: 10px;
   transition: opacity 1s ease-in;
   overflow-wrap: break-word;
 }
 
 /* Popup arrow */
 .popup .popuptext::after {
-  content: "";
-  transform: rotate(180deg);
-  position: absolute;
-  bottom: 100%;
-  right: 10px;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: var(--back-color);
-  pointer-events: none;
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    right: 10px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent var(--back-color) transparent;
 }
 
 /* Toggle this class - hide and show the popup */
@@ -956,6 +964,26 @@ body {
   visibility: visible;
   -webkit-animation: fadeIn 1s;
   animation: fadeIn 1s;
+}
+
+.filters {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+}
+
+.filters select {
+    flex: 0;
 }
 
 .modal {

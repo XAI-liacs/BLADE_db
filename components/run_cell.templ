@@ -29,9 +29,9 @@ templ RunCells(runs []database.Run, forExperiment uuid.UUID, showVisibilityToggl
 	for _, run := range runs {
         <button
             type="button"
-            class="run-cell btn"
+            class="run-cell neumorphic-btn"
             hx-get={ "/html/run_data?run_id=" + run.ID.String() }
-            hx-target="#solution-panel"
+            hx-target="#right-panel"
             hx-swap="innerHTML"
 			onClick="SwitchView()"
         >
