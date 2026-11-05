@@ -4,7 +4,6 @@ import (
 	"XAI-liacs/BLADE_db/authentication"
 	"XAI-liacs/BLADE_db/components"
 	"XAI-liacs/BLADE_db/internal/database"
-	"context"
 	"crypto/sha256"
 	"fmt"
 	"html/template"
@@ -12,6 +11,7 @@ import (
 	"net/http"
 	"regexp"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -162,10 +162,29 @@ func (app *App) HandleHtmlExperiment(w http.ResponseWriter, r *http.Request) {
 		component.Render(r.Context(), w)
 		return
 	}
+	filter := r.URL.Query().Get("visibility")
+	sort := r.URL.Query().Get("sort")
+	sort = strings.ToLower(sort)
+	sort = strings.ReplaceAll(sort, " ", "_")
 
-	experiments, err := app.State.DB.GetExperimentsForUser(context.Background(), user.ID)
+	experiments := make([]database.Experiment, 0)
+	switch filter {
+	case "Personal":
+		experiments, err = app.State.DB.GetPrivateExperimentsForUser(r.Context(), database.GetPrivateExperimentsForUserParams{
+			UserID:     user.ID,
+			SortColumn: sort,
+		})
+	case "Public":
+		experiments, err = app.State.DB.GetPublicExperiments(r.Context(), sort)
+	default:
+		experiments, err = app.State.DB.GetAllExperimentsForUser(r.Context(), database.GetAllExperimentsForUserParams{
+			UserID:     user.ID,
+			SortColumn: sort,
+		})
+	}
 	if err != nil {
 		component.Render(r.Context(), w)
+		log.Println("Unable to fetch experiments for url request " + r.URL.String() + " Error: " + err.Error())
 		return
 	}
 

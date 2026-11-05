@@ -696,6 +696,17 @@ body {
 
 }
 
+.left-panel-header {
+    display: flex;
+    flex-direction: column;
+}
+
+.left-panel-header > .left-panel-subtitle {
+    opacity: 0.6;
+    text-indent: 5px;
+    font-size: 0.9rem;
+    font-weight: normal;
+}
 
 .experiment-cell .date {
   display: block;

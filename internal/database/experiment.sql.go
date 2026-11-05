@@ -62,6 +62,57 @@ func (q *Queries) CreateExperiment(ctx context.Context, arg CreateExperimentPara
 	return id, err
 }
 
+const getAllExperimentsForUser = `-- name: GetAllExperimentsForUser :many
+SELECT e.id, e.name, e.start_date, e.end_date, e.is_public
+FROM experiment e
+WHERE e.is_public
+   OR EXISTS (
+       SELECT 1
+       FROM user_experiment ue
+       WHERE ue.experiment_id = e.id
+         AND ue.user_id = $1
+   )
+   ORDER BY
+       CASE WHEN $2::text = 'start_date'
+           THEN e.start_date END,
+       CASE WHEN $2::text = 'name'
+           THEN e.name END
+`
+
+type GetAllExperimentsForUserParams struct {
+	UserID     uuid.UUID
+	SortColumn string
+}
+
+func (q *Queries) GetAllExperimentsForUser(ctx context.Context, arg GetAllExperimentsForUserParams) ([]Experiment, error) {
+	rows, err := q.db.QueryContext(ctx, getAllExperimentsForUser, arg.UserID, arg.SortColumn)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Experiment
+	for rows.Next() {
+		var i Experiment
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.StartDate,
+			&i.EndDate,
+			&i.IsPublic,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getExperiments = `-- name: GetExperiments :many
 SELECT id, name, start_date, end_date, is_public FROM experiment
 `
@@ -95,20 +146,65 @@ func (q *Queries) GetExperiments(ctx context.Context) ([]Experiment, error) {
 	return items, nil
 }
 
-const getExperimentsForUser = `-- name: GetExperimentsForUser :many
-SELECT e.id, e.name, e.start_date, e.end_date, e.is_public
-FROM experiment e
-WHERE e.is_public
-   OR EXISTS (
-       SELECT 1
-       FROM user_experiment er
-       WHERE er.experiment_id = e.id
-         AND er.user_id = $1
-   )
+const getPrivateExperimentsForUser = `-- name: GetPrivateExperimentsForUser :many
+SELECT e.id, e.name, e.start_date, e.end_date, e.is_public FROM user_experiment ue
+JOIN experiment e
+ON e.id = ue.experiment_id
+WHERE ue.user_id = $1
+ORDER BY
+    CASE WHEN $2::text = 'start_date'
+        THEN e.start_date END,
+    CASE WHEN $2::text = 'name'
+        THEN e.name END
 `
 
-func (q *Queries) GetExperimentsForUser(ctx context.Context, userID uuid.UUID) ([]Experiment, error) {
-	rows, err := q.db.QueryContext(ctx, getExperimentsForUser, userID)
+type GetPrivateExperimentsForUserParams struct {
+	UserID     uuid.UUID
+	SortColumn string
+}
+
+func (q *Queries) GetPrivateExperimentsForUser(ctx context.Context, arg GetPrivateExperimentsForUserParams) ([]Experiment, error) {
+	rows, err := q.db.QueryContext(ctx, getPrivateExperimentsForUser, arg.UserID, arg.SortColumn)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Experiment
+	for rows.Next() {
+		var i Experiment
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.StartDate,
+			&i.EndDate,
+			&i.IsPublic,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPublicExperiments = `-- name: GetPublicExperiments :many
+SELECT id, name, start_date, end_date, is_public
+FROM experiment e
+WHERE e.is_public
+ORDER BY
+    CASE WHEN $1::text = 'start_date'
+        THEN e.start_date END,
+    CASE WHEN $1::text = 'name'
+        THEN e.name END
+`
+
+func (q *Queries) GetPublicExperiments(ctx context.Context, sortColumn string) ([]Experiment, error) {
+	rows, err := q.db.QueryContext(ctx, getPublicExperiments, sortColumn)
 	if err != nil {
 		return nil, err
 	}

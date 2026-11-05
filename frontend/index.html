@@ -56,7 +56,14 @@
                     <div class="inner_content">
                         <div class="navigation_view active neumorphic-inner" id="left-panel">
                             <div class="header">
-                                Experiments
+                                <span class="left-panel-header">
+                                    <span id="left-panel-title">
+                                        Experiments
+                                    </span>
+                                    <span class="left-panel-subtitle" id="left-panel-subtitle">
+                                        default
+                                    </span>
+                                </span>
                                 <button class="btn neumorphic-btn"
                                     hx-on:click="document.getElementById('category-popup').classList.toggle('show')">
                                     <span class="material-symbols-outlined">
@@ -79,20 +86,35 @@
                                                 <div class="filter-group">
                                                     <label for="visibility" class="neumorphic-label">Created By:</label>
                                                     <select name="visibility" class="neumorphic-input" id="visibility">
-                                                        <option value="all">All</option>
-                                                        <option value="personal">Personal</option>
-                                                        <option value="public">Public</option>
+                                                        <option value="All">All</option>
+                                                        <option value="Personal">Personal</option>
+                                                        <option value="Public">Public</option>
                                                     </select>
                                                 </div>
                                                 <div class="filter-group">
                                                     <label for="sort" class="neumorphic-label">Sort By:</label>
                                                     <select name="sort" class="neumorphic-input" id="sort">
-                                                        <option value="date">Date</option>
-                                                        <option value="Name">Name</option>
+                                                        <option value="Start Date">Date</option>
+                                                        <option value="name">Name</option>
                                                     </select>
                                                 </div>
 
-                                                <button type="submit" class="neumorphic-btn">
+                                                <button
+                                                    type="submit"
+                                                    class="neumorphic-btn"
+                                                    hx-get="/html/experiments"
+                                                    hx-include="closest form"
+                                                    hx-target="#left-content"
+                                                    hx-swap="innerHTML"
+                                                    hx-on::before-request="
+                                                        document.getElementById('left-panel-title').textContent = 'Experiments';
+                                                        document.getElementById('left-panel-subtitle').textContent =
+                                                            Array.from(new FormData(this.closest('form')).entries())
+                                                                .map(([key, value]) => value)
+                                                                .filter(value => value !== '')
+                                                                .join(' • ');
+                                                    "
+                                                >
                                                     <span class="material-symbols-outlined">arrow_circle_right</span>
                                                 </button>
                                             </form>

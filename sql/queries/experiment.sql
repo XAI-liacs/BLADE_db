@@ -21,16 +21,42 @@ SELECT EXISTS (
 -- name: GetExperiments :many
 SELECT * FROM experiment;
 
--- name: GetExperimentsForUser :many
+-- name: GetAllExperimentsForUser :many
 SELECT e.*
 FROM experiment e
 WHERE e.is_public
    OR EXISTS (
        SELECT 1
-       FROM user_experiment er
-       WHERE er.experiment_id = e.id
-         AND er.user_id = $1
-   );
+       FROM user_experiment ue
+       WHERE ue.experiment_id = e.id
+         AND ue.user_id = $1
+   )
+   ORDER BY
+       CASE WHEN sqlc.arg(sort_column)::text = 'start_date'
+           THEN e.start_date END,
+       CASE WHEN sqlc.arg(sort_column)::text = 'name'
+           THEN e.name END;
+
+-- name: GetPublicExperiments :many
+SELECT *
+FROM experiment e
+WHERE e.is_public
+ORDER BY
+    CASE WHEN sqlc.arg(sort_column)::text = 'start_date'
+        THEN e.start_date END,
+    CASE WHEN sqlc.arg(sort_column)::text = 'name'
+        THEN e.name END;
+
+-- name: GetPrivateExperimentsForUser :many
+SELECT e.* FROM user_experiment ue
+JOIN experiment e
+ON e.id = ue.experiment_id
+WHERE ue.user_id = $1
+ORDER BY
+    CASE WHEN sqlc.arg(sort_column)::text = 'start_date'
+        THEN e.start_date END,
+    CASE WHEN sqlc.arg(sort_column)::text = 'name'
+        THEN e.name END;
 
 -- name: GetUsersAndVisibilityOfExperiment :one
 SELECT
