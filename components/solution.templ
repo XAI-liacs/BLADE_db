@@ -2,7 +2,7 @@ package components
 
 import (
 	"XAI-liacs/BLADE_db/internal/database"
-	// "fmt"
+	"github.com/google/uuid"
 )
 
 templ Solution(solution database.GetSolutionsForRunRow) {
@@ -93,7 +93,7 @@ templ Solution(solution database.GetSolutionsForRunRow) {
 }
 
 
-templ SolutionList(solutions []database.GetSolutionsForRunRow) {
+templ SolutionList(run_id uuid.UUID, solutions []database.GetSolutionsForRunRow) {
 	<div class="content-header neumorphic-outer">
         <button class="neumorphic-btn back-btn" onclick="SwitchView()">
             <span class="material-symbols-outlined">arrow_back</span>
@@ -102,10 +102,16 @@ templ SolutionList(solutions []database.GetSolutionsForRunRow) {
             Solution
         </span>
         <button class="neumorphic-btn"
-            data-toggle="modal"
-            data-target="#modalView">
+            hx-target="#modalViewContent"
+           	hx-swap="innerHTML"
+            hx-get={"/html/lineage_plot?run_id=" + run_id.String()}
+            hx-on:click="
+				        document.querySelector('#modalView').classList.add('show');
+				        document.body.classList.add('modal-open');
+						document.querySelector('#modalViewTitle').textContent = 'Lineage Plot'
+				    ">
             <span class="material-symbols-outlined">
-                sort
+                insights
             </span>
         </button>
     </div>

@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"XAI-liacs/BLADE_db/internal/database"
-	// "fmt"
+	"github.com/google/uuid"
 )
 
 func Solution(solution database.GetSolutionsForRunRow) templ.Component {
@@ -234,7 +234,7 @@ func Solution(solution database.GetSolutionsForRunRow) templ.Component {
 	})
 }
 
-func SolutionList(solutions []database.GetSolutionsForRunRow) templ.Component {
+func SolutionList(run_id uuid.UUID, solutions []database.GetSolutionsForRunRow) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -255,7 +255,20 @@ func SolutionList(solutions []database.GetSolutionsForRunRow) templ.Component {
 			templ_7745c5c3_Var11 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<div class=\"content-header neumorphic-outer\"><button class=\"neumorphic-btn back-btn\" onclick=\"SwitchView()\"><span class=\"material-symbols-outlined\">arrow_back</span></button> <span>Solution</span> <button class=\"neumorphic-btn\" data-toggle=\"modal\" data-target=\"#modalView\"><span class=\"material-symbols-outlined\">sort</span></button></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<div class=\"content-header neumorphic-outer\"><button class=\"neumorphic-btn back-btn\" onclick=\"SwitchView()\"><span class=\"material-symbols-outlined\">arrow_back</span></button> <span>Solution</span> <button class=\"neumorphic-btn\" hx-target=\"#modalViewContent\" hx-swap=\"innerHTML\" hx-get=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var12 string
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue("/html/lineage_plot?run_id=" + run_id.String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/solution.templ`, Line: 107, Col: 66}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" hx-on:click=\"\n\t\t\t\t        document.querySelector('#modalView').classList.add('show');\n\t\t\t\t        document.body.classList.add('modal-open');\n\t\t\t\t\t\tdocument.querySelector('#modalViewTitle').textContent = 'Lineage Plot'\n\t\t\t\t    \"><span class=\"material-symbols-outlined\">insights</span></button></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

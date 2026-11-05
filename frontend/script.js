@@ -12,7 +12,6 @@ $(document).on('click', '.neumorphic-tab-container__control', function () {
     // Get the controls wrapper and its ID
     const $controls = $control.closest('.neumorphic-tab-container__controls');
   const controlsId = $controls.attr('id');
-  console.log("Clicked tab view with id: ", controlsId)
     // Find the matching tab container
     const $container = $('.neumorphic-tab-container').filter(function () {
         return this.id === controlsId;

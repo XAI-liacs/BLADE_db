@@ -1,0 +1,107 @@
+package components
+
+import "XAI-liacs/BLADE_db/internal/database"
+
+templ LineagePlot(for_data []database.GetSolutionsForRunRow) {
+	{{
+		line, scatter, markers, names, err := getPlotArray(for_data)
+	}}
+	if err != nil {
+		@EmptyRightPanel(err.Error())
+	} else {
+		<div id="lineage-plot" class="lineage-plot"></div>
+
+		<script>
+			(() => {
+			const lineX = {{ line[0] }};
+			const lineY = {{ line[1] }};
+			const scatterX = {{ scatter[0] }};
+			const scatterY = {{ scatter[1] }};
+			const markers = {{ markers }};
+			const names = {{ names }};
+
+			const data = [
+				{
+					x: lineX,
+					y: lineY,
+					type: "scatter",
+					mode: "lines",
+					name: "Lineage",
+					line: {
+						color: "#888",
+						width: 1.5
+					},
+					hoverinfo: "skip",
+					connectgaps: false
+				},
+				{
+					x: scatterX,
+					y: scatterY,
+					type: "scatter",
+					mode: "markers",
+					name: "Solutions",
+					text: names,
+					marker: {
+						size: 10,
+						symbol: markers,
+						color: "#2563eb",
+						line: {
+							width: 1,
+							color: "#fff"
+						}
+					},
+					hovertemplate:
+						"Name: %{text}<br>" +
+						"Generation: %{x}<br>" +
+						"Fitness: %{y}<extra></extra>"
+				}
+			];
+
+			const layout = {
+				title: {
+					text: "Solution lineage"
+				},
+				xaxis: {
+					title: "Generation",
+					zeroline: false,
+					showgrid: true
+				},
+				yaxis: {
+					title: "Fitness",
+					zeroline: false,
+					showgrid: true
+				},
+				showlegend: false,
+				hovermode: "closest",
+				margin: {
+					l: 55,
+					r: 20,
+					t: 45,
+					b: 50
+				}
+			};
+
+			const config = {
+				responsive: true,
+				displaylogo: false
+			};
+
+			requestAnimationFrame(() => {
+			    const plot = document.getElementById("lineage-plot");
+
+			    if (!plot) {
+			        console.error("Lineage plot element not found");
+			        return;
+			    }
+
+			    // Clean up any previous Plotly instance.
+			    Plotly.purge(plot);
+
+			    Plotly.newPlot(plot, data, layout, config)
+			        .then(() => Plotly.Plots.resize(plot))
+			        .catch(err => console.error("Plotly initialization failed:", err));
+			})
+			})();
+		</script>
+	}
+}

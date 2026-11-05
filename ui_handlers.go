@@ -214,74 +214,6 @@ func (app *App) HandleRunCells(w http.ResponseWriter, r *http.Request) {
 	runCells.Render(r.Context(), w)
 }
 
-func (app *App) HandleHtmlDashboard(w http.ResponseWriter, r *http.Request) {
-	user, err := app.authenticate(r, "html")
-	if err != nil {
-		http.Error(w, "Unable to authorise user: "+err.Error(), http.StatusUnauthorized)
-		return
-	}
-	user_dashboard := components.Dashboard(user)
-	user_dashboard.Render(r.Context(), w)
-}
-
-func (app *App) HandleHtmlDefaultUserVisibility(w http.ResponseWriter, r *http.Request) {
-	user, err := app.authenticate(r, "html")
-	if err != nil {
-		http.Error(w, "Unable to authorise user: "+err.Error(), http.StatusUnauthorized)
-		return
-	}
-	writerContext, err := app.State.GetTransactionalState(r.Context())
-	defer writerContext.TX.Commit()
-	if err != nil {
-		http.Error(w, "Unable to get DB writer context: "+err.Error(), http.StatusInternalServerError)
-		writerContext.TX.Rollback()
-		return
-	}
-
-	if err = writerContext.DB.SetDefaultVisibility(r.Context(), database.SetDefaultVisibilityParams{
-		ID:                user.ID,
-		DefaultVisibility: !user.DefaultVisibility,
-	}); err != nil {
-		http.Error(w, "Unable to get update default visibility: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	user_dashboard := components.DefaultVisibility(!user.DefaultVisibility) //Relect DB change in fetched object..
-	user_dashboard.Render(r.Context(), w)
-}
-
-func (app *App) handleChangeAPIKey(w http.ResponseWriter, r *http.Request) {
-	user, err := app.authenticate(r, "html")
-	if err != nil {
-		http.Error(w, "Unauthorised access: "+err.Error(), http.StatusUnauthorized)
-		return
-	}
-	api, err := GenerateAPIKey()
-	if err != nil {
-		http.Error(w, "Unable to generate key: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-	writerContext, err := app.State.GetTransactionalState(r.Context())
-	defer writerContext.TX.Commit()
-
-	if err != nil {
-		writerContext.TX.Rollback()
-		http.Error(w, "Unable to generate key: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if err = writerContext.DB.UpdateAPIKey(r.Context(), database.UpdateAPIKeyParams{
-		ID:     user.ID,
-		ApiKey: api,
-	}); err != nil {
-		writerContext.TX.Rollback()
-		http.Error(w, "Unable to set api key: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.Write([]byte(api))
-}
-
 func (app *App) HandleHtmlRunData(w http.ResponseWriter, r *http.Request) {
 	component := components.EmptyRightPanel("No runs selected.")
 
@@ -349,6 +281,7 @@ func (app *App) HandleHtmlVisibilityToggle(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// Modal Handlers.
 func (app *App) HandleHtmlContributors(w http.ResponseWriter, r *http.Request) {
 	_, err := app.authenticate(r, "html")
 	if err != nil {
@@ -381,4 +314,98 @@ func (app *App) HandleHtmlContributors(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to render visibility indicator", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (app *App) HandleHtmlLineagePlot(w http.ResponseWriter, r *http.Request) {
+	_, err := app.authenticate(r, "html")
+	if err != nil {
+		log.Println("Got unauthorised access to /html/contributors" + err.Error())
+		http.Error(w, "Unauthorised access.", http.StatusUnauthorized)
+		return
+	}
+
+	run_id, err := uuid.Parse(r.URL.Query().Get("run_id"))
+	if err != nil {
+		empty_view := components.EmptyRightPanel("Invalid or non-existent run_id provided in query, `" + r.URL.Query().Get("run_id") + "`.")
+		_ = empty_view.Render(r.Context(), w)
+		return
+	}
+	solutions, err := app.State.DB.GetSolutionsForRun(r.Context(), run_id)
+	if err != nil {
+		empty_view := components.EmptyRightPanel("Couldn't fetch solutions for run_id `" + r.URL.Query().Get("run_id") + "`.")
+		_ = empty_view.Render(r.Context(), w)
+		return
+	}
+	// Generate and render plotly.
+	lineage_plot := components.LineagePlot(solutions)
+	lineage_plot.Render(r.Context(), w)
+}
+
+// Dashboard Handlers.
+func (app *App) HandleHtmlDashboard(w http.ResponseWriter, r *http.Request) {
+	user, err := app.authenticate(r, "html")
+	if err != nil {
+		http.Error(w, "Unable to authorise user: "+err.Error(), http.StatusUnauthorized)
+		return
+	}
+	user_dashboard := components.Dashboard(user)
+	user_dashboard.Render(r.Context(), w)
+}
+
+func (app *App) HandleHtmlDefaultUserVisibility(w http.ResponseWriter, r *http.Request) {
+	user, err := app.authenticate(r, "html")
+	if err != nil {
+		http.Error(w, "Unable to authorise user: "+err.Error(), http.StatusUnauthorized)
+		return
+	}
+	writerContext, err := app.State.GetTransactionalState(r.Context())
+	defer writerContext.TX.Commit()
+	if err != nil {
+		http.Error(w, "Unable to get DB writer context: "+err.Error(), http.StatusInternalServerError)
+		writerContext.TX.Rollback()
+		return
+	}
+
+	if err = writerContext.DB.SetDefaultVisibility(r.Context(), database.SetDefaultVisibilityParams{
+		ID:                user.ID,
+		DefaultVisibility: !user.DefaultVisibility,
+	}); err != nil {
+		http.Error(w, "Unable to get update default visibility: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	user_dashboard := components.DefaultVisibility(!user.DefaultVisibility) //Relect DB change in fetched object..
+	user_dashboard.Render(r.Context(), w)
+}
+
+func (app *App) handleChangeAPIKey(w http.ResponseWriter, r *http.Request) {
+	user, err := app.authenticate(r, "html")
+	if err != nil {
+		http.Error(w, "Unauthorised access: "+err.Error(), http.StatusUnauthorized)
+		return
+	}
+	api, err := GenerateAPIKey()
+	if err != nil {
+		http.Error(w, "Unable to generate key: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	writerContext, err := app.State.GetTransactionalState(r.Context())
+	defer writerContext.TX.Commit()
+
+	if err != nil {
+		writerContext.TX.Rollback()
+		http.Error(w, "Unable to generate key: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err = writerContext.DB.UpdateAPIKey(r.Context(), database.UpdateAPIKeyParams{
+		ID:     user.ID,
+		ApiKey: api,
+	}); err != nil {
+		writerContext.TX.Rollback()
+		http.Error(w, "Unable to set api key: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Write([]byte(api))
 }

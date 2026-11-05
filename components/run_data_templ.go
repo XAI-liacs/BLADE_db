@@ -42,7 +42,7 @@ func RunData(
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = SolutionList(solutions).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = SolutionList(run_id, solutions).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
