@@ -7,7 +7,38 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/sqlc-dev/pqtype"
 )
+
+type LLMRepresentative interface {
+	GetHardware(object any) pqtype.NullRawMessage
+	GetConfig(object any) json.RawMessage
+}
+
+type LLMRepresentativeImpl struct{}
+
+func (LLMRepresentativeImpl) GetHardware(object any) pqtype.NullRawMessage {
+	switch v := object.(type) {
+	case database.Llm:
+		return v.Hardware
+	case database.GetLLMSolutionCountsRow:
+		return v.Hardware
+	default:
+		panic("unsupported LLM type")
+	}
+}
+
+func (LLMRepresentativeImpl) GetConfig(object any) json.RawMessage {
+	switch v := object.(type) {
+	case database.Llm:
+		return v.Config
+	case database.GetLLMSolutionCountsRow:
+		return v.Config
+	default:
+		panic("unsupported LLM type")
+	}
+}
 
 func renderMarkdown(message string) string {
 	return message
@@ -18,23 +49,22 @@ func renderMarkdown(message string) string {
 	// return buf.String()
 }
 
-func ParseLLM(llm database.Llm) (hardware, config map[string]any) {
-	if llm.Hardware.Valid {
-		hardware = make(map[string]any)
-		if err := json.Unmarshal(
-			llm.Hardware.RawMessage,
-			&hardware,
-		); err != nil {
+func ParseLLM(llm any) (hardware, config map[string]any) {
+	representative := LLMRepresentativeImpl{}
+
+	hardwareData := representative.GetHardware(llm)
+
+	configData := representative.GetConfig(llm)
+	if hardwareData.Valid {
+		if err := json.Unmarshal(hardwareData.RawMessage, &hardware); err != nil {
 			hardware = nil
 		}
 	}
-	config = make(map[string]any)
-	if err := json.Unmarshal(
-		llm.Config,
-		&config,
-	); err != nil {
+
+	if err := json.Unmarshal(configData, &config); err != nil {
 		config = nil
 	}
+
 	return hardware, config
 }
 
@@ -89,7 +119,7 @@ func getInitials(name string) string {
 	if len(words) >= 2 {
 		return strings.ToUpper(
 			string([]rune(words[0])[0]) +
-				string([]rune(words[1])[0]),
+				string([]rune(words[len(words)-1])[0]),
 		)
 	}
 

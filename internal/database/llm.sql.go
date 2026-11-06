@@ -45,6 +45,169 @@ func (q *Queries) CreateLLM(ctx context.Context, arg CreateLLMParams) (uuid.UUID
 	return id, err
 }
 
+const getAllLLMs = `-- name: GetAllLLMs :many
+SELECT
+    model::text AS model,
+    COUNT(hash)::bigint AS usage_count,
+    (CASE
+        WHEN hardware IS NULL THEN 'cloud'
+        ELSE 'local'
+    END)::text AS type
+FROM llm
+GROUP BY model, type
+ORDER BY
+    CASE WHEN $1::text = 'Top' THEN COUNT(hash) END DESC,
+    CASE WHEN $1::text = 'Name' THEN model END ASC
+`
+
+type GetAllLLMsRow struct {
+	Model      string
+	UsageCount int64
+	Type       string
+}
+
+func (q *Queries) GetAllLLMs(ctx context.Context, sort string) ([]GetAllLLMsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllLLMs, sort)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllLLMsRow
+	for rows.Next() {
+		var i GetAllLLMsRow
+		if err := rows.Scan(&i.Model, &i.UsageCount, &i.Type); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCloudLLMs = `-- name: GetCloudLLMs :many
+SELECT
+    model::text AS model,
+    COUNT(hash)::bigint AS usage_count,
+    'cloud'::text AS type
+FROM llm
+WHERE hardware IS NULL
+GROUP BY model
+ORDER BY
+    CASE WHEN $1::text = 'Top' THEN COUNT(hash) END DESC,
+    CASE WHEN $1::text = 'Name' THEN model END ASC
+`
+
+type GetCloudLLMsRow struct {
+	Model      string
+	UsageCount int64
+	Type       string
+}
+
+func (q *Queries) GetCloudLLMs(ctx context.Context, sort string) ([]GetCloudLLMsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCloudLLMs, sort)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCloudLLMsRow
+	for rows.Next() {
+		var i GetCloudLLMsRow
+		if err := rows.Scan(&i.Model, &i.UsageCount, &i.Type); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getLLMSolutionCounts = `-- name: GetLLMSolutionCounts :many
+WITH single_llm_runs AS (
+    SELECT
+        cl.run_id,
+        cl.llm_id
+    FROM conversation_log cl
+    WHERE cl.llm_id IS NOT NULL
+    GROUP BY cl.run_id, cl.llm_id
+    HAVING COUNT(DISTINCT cl.llm_id) = 1
+),
+
+solution_counts AS (
+    SELECT
+        slr.llm_id,
+        COUNT(s.id) AS total_solution_count,
+        COUNT(s.id) FILTER (
+            WHERE s.fitness IS NOT NULL
+        ) AS valid_solution_count
+    FROM single_llm_runs slr
+    JOIN run_solution rs
+        ON rs.run_id = slr.run_id
+    JOIN solution s
+        ON s.id = rs.solution_id
+    GROUP BY slr.llm_id
+)
+
+SELECT
+    llm.id, llm.model, llm.hash, llm.hardware, llm.config,
+    COALESCE(sc.total_solution_count, 0)::BIGINT AS total_solution_count,
+    COALESCE(sc.valid_solution_count, 0)::BIGINT AS valid_solution_count
+FROM llm
+LEFT JOIN solution_counts sc
+    ON sc.llm_id = llm.id
+WHERE llm.model = $1
+`
+
+type GetLLMSolutionCountsRow struct {
+	ID                 uuid.UUID
+	Model              string
+	Hash               string
+	Hardware           pqtype.NullRawMessage
+	Config             json.RawMessage
+	TotalSolutionCount int64
+	ValidSolutionCount int64
+}
+
+func (q *Queries) GetLLMSolutionCounts(ctx context.Context, model string) ([]GetLLMSolutionCountsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getLLMSolutionCounts, model)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetLLMSolutionCountsRow
+	for rows.Next() {
+		var i GetLLMSolutionCountsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Model,
+			&i.Hash,
+			&i.Hardware,
+			&i.Config,
+			&i.TotalSolutionCount,
+			&i.ValidSolutionCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getLLMs = `-- name: GetLLMs :many
 SELECT id, model, hash, hardware, config FROM llm
 `
@@ -65,6 +228,48 @@ func (q *Queries) GetLLMs(ctx context.Context) ([]Llm, error) {
 			&i.Hardware,
 			&i.Config,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getLocalLLMs = `-- name: GetLocalLLMs :many
+SELECT
+    model::text AS model,
+    COUNT(hash)::bigint AS usage_count,
+    'local'::text AS type
+FROM llm
+WHERE hardware IS NOT NULL
+GROUP BY model
+ORDER BY
+    CASE WHEN $1::text = 'Top' THEN COUNT(hash) END DESC,
+    CASE WHEN $1::text = 'Name' THEN model END ASC
+`
+
+type GetLocalLLMsRow struct {
+	Model      string
+	UsageCount int64
+	Type       string
+}
+
+func (q *Queries) GetLocalLLMs(ctx context.Context, sort string) ([]GetLocalLLMsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getLocalLLMs, sort)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetLocalLLMsRow
+	for rows.Next() {
+		var i GetLocalLLMsRow
+		if err := rows.Scan(&i.Model, &i.UsageCount, &i.Type); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

@@ -360,6 +360,81 @@ func (app *App) HandleHtmlLineagePlot(w http.ResponseWriter, r *http.Request) {
 	lineage_plot.Render(r.Context(), w)
 }
 
+// LLM Handlers.
+func (app *App) HandleHtmlLLMCell(w http.ResponseWriter, r *http.Request) {
+	_, err := app.authenticate(r, "html")
+	empty_view := components.EmptyRightPanel("No relevant LLMs found...")
+	if err != nil {
+		http.Error(w, "Unable to authorise user: "+err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	filter := r.URL.Query().Get("llm-type")
+	filter = strings.ToLower(filter)
+
+	sort := r.URL.Query().Get("sort")
+	sort = strings.ToLower(sort)
+
+	llms := make([]database.GetAllLLMsRow, 0)
+	local_llms := make([]database.GetLocalLLMsRow, 0)
+	cloud_llms := make([]database.GetCloudLLMsRow, 0)
+	switch filter {
+	case "all":
+		llms, err = app.State.DB.GetAllLLMs(r.Context(), sort)
+	case "local":
+		local_llms, err = app.State.DB.GetLocalLLMs(r.Context(), sort)
+		for _, local_llm := range local_llms {
+			llms = append(llms, database.GetAllLLMsRow{
+				Model:      local_llm.Model,
+				UsageCount: local_llm.UsageCount,
+				Type:       local_llm.Type,
+			})
+		}
+	case "cloud":
+		cloud_llms, err = app.State.DB.GetCloudLLMs(r.Context(), sort)
+		for _, cloud_llm := range cloud_llms {
+			llms = append(llms, database.GetAllLLMsRow{
+				Model:      cloud_llm.Model,
+				UsageCount: cloud_llm.UsageCount,
+				Type:       cloud_llm.Type,
+			})
+		}
+	default:
+		empty_view.Render(r.Context(), w)
+	}
+	if err != nil {
+		empty_view = components.EmptyRightPanel("Error occured: " + err.Error())
+		log.Println("Got error rendering LLM Cells: " + err.Error())
+		empty_view.Render(r.Context(), w)
+		return
+	}
+	if len(llms) == 0 {
+		empty_view.Render(r.Context(), w)
+	}
+	llm_cells := components.LLMList(llms)
+	llm_cells.Render(r.Context(), w)
+}
+
+func (app *App) HandleLLMData(w http.ResponseWriter, r *http.Request) {
+	// user, err := app.authenticate(r, "html")   //Authenticate if data can somehow be related to the experiments, else no need.
+	// if err != nil {
+	// 	empty_view := components.EmptyRightPanel("Authorisation error...")
+	// 	empty_view.Render(r.Context(), w)
+	// 	http.Error(w, "Unable to authorise user: "+err.Error(), http.StatusUnauthorized)
+	// 	return
+	// }
+	model := r.URL.Query().Get("model")
+	llm_info, err := app.State.DB.GetLLMSolutionCounts(r.Context(), model)
+	if err != nil {
+		empty_view := components.EmptyRightPanel("Unable to fetch data for model " + model + "...")
+		empty_view.Render(r.Context(), w)
+		http.Error(w, "Unable to fetch data: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	llm_info_presentation := components.LLMDataPresentation(llm_info)
+	llm_info_presentation.Render(r.Context(), w)
+}
+
 // Dashboard Handlers.
 func (app *App) HandleHtmlDashboard(w http.ResponseWriter, r *http.Request) {
 	user, err := app.authenticate(r, "html")

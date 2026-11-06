@@ -1,0 +1,95 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/frontend/styles.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js" integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+        <title>BLADE DB</title>
+    </head>
+    <body>
+        <div class="navigation_view leaf neumorphic-inner active" id="right-panel">
+            <div class="llm-data">
+                <div class="content-header neumorphic-outer">
+                       <button class="neumorphic-btn back-btn" onclick="SwitchView()">
+                           <span class="material-symbols-outlined">arrow_back</span>
+                       </button>
+                       <span>
+                           gemma-4:latest
+                       </span>
+                       <span></span>
+                   </div>
+                            <div class="neumorphic-card">
+                                <div class="title">
+                                    <div class="name-description">
+                                        <span class="sub-title">Local</span>
+                                        <span style="display: flex; flex-direction: row; align-content: center; gap: 5px;">
+                                            <span class="material-symbols-outlined">desktop_mac</span>
+                                             gemma4:latest
+                                        </span>
+                                    </div>
+                                    <div class="progress-circle" style="--progress: 0.75">
+                                        <span>75%</span>
+                                    </div>
+                                </div>
+                                <span class="llm-descriptor">The configured local LLM successfully generated valid solutions for 6 out of 8 prompts.</span>
+                                <div class="keyValuePairHead">
+                                    <span class="headTitle">
+                                        <span class="key">Hardware</span>
+                                        <span class="value material-symbols-outlined">keyboard_arrow_down</span>
+                                    </span>
+                                    <div class="keyValuePair neumorphic-inner">
+                                        <span class="key">CPU name</span>
+                                        <span class="key">Apple M4</span>
+                                    </div>
+                                    <div class="keyValuePair neumorphic-inner">
+                                        <span class="key">GPU name</span>
+                                        <span class="key">Apple M4</span>
+                                    </div>
+                                    <div class="keyValuePair neumorphic-inner">
+                                        <span class="key">video memory</span>
+                                        <span class="key">-</span>
+                                    </div>
+                                    <div class="keyValuePair neumorphic-inner">
+                                        <span class="key">CPU core count</span>
+                                        <span class="key">10</span>
+                                    </div>
+                                    <div class="keyValuePair neumorphic-inner">
+                                        <span class="key">memory</span>
+                                        <span class="key">16384 MB</span>
+                                    </div>
+                                    <div class="keyValuePair neumorphic-inner">
+                                        <span class="key">OS name</span>
+                                        <span class="key">macOS-27.0-arm64-arm-64bit-Mach-O</span>
+                                    </div>
+                                </div>
+                                <div class="keyValuePairHead">
+                                    <span class="headTitle">
+                                        <span class="key">Config</span>
+                                        <span class="value material-symbols-outlined">keyboard_arrow_down</span>
+                                    </span>
+                                    <div class="keyValuePair neumorphic-inner">
+                                        <span class="key">port</span>
+                                        <span class="key">11434</span>
+                                    </div>
+                                </div>
+                            </div>
+
+            </div>
+        </div>
+
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/frontend/script.js"></script>
+    <script>
+        window.addEventListener("load", () => {
+            const bgColor = getComputedStyle(document.documentElement)
+                .getPropertyValue("--back-color").trim();
+
+            document.body.style.backgroundColor = bgColor;
+        });
+    </script>
+    </body>
+</html>

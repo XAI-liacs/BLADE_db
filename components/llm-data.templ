@@ -1,0 +1,77 @@
+package components
+
+import (
+	"fmt"
+	"XAI-liacs/BLADE_db/internal/database"
+)
+
+templ LLMInfo(llm database.GetLLMSolutionCountsRow) {
+	{{
+		ratio := float64(llm.ValidSolutionCount) / float64(max(llm.TotalSolutionCount, 1))
+		percentage := llm.ValidSolutionCount * 100 / max(llm.TotalSolutionCount, 1)
+		llm_type := "Cloud"
+		llm_symbol := "cloud"
+		if llm.Hardware.Valid {
+			llm_type = "Local"
+			llm_symbol = "desktop_mac"
+		}
+		hardware, config := ParseLLM(llm)
+	}}
+
+	<div class="neumorphic-card" id=llm.ID>
+        <div class="title">
+            <div class="name-description">
+                <span class="sub-title">{llm_type}</span>
+                <span style="display: flex; flex-direction: row; align-content: center; gap: 5px;">
+                    <span class="material-symbols-outlined">{llm_symbol}</span>
+                        {llm.Model}
+                </span>
+            </div>
+            <div class="progress-circle" style={fmt.Sprintf("--progress: %.5f", ratio)}>
+                <span>{percentage}%</span>
+            </div>
+        </div>
+        <span class="llm-descriptor">The configured local LLM successfully generated valid solutions for {llm.ValidSolutionCount} out of {llm.TotalSolutionCount} prompts.</span>
+        <div class="keyValuePairHead">
+            <span class="headTitle">
+                <span class="key">Hardware</span>
+                <span class="value material-symbols-outlined">keyboard_arrow_down</span>
+            </span>
+           	for key, value := range hardware {
+          		@KeyValue(key, value)
+           	}
+        </div>
+        <div class="keyValuePairHead">
+            <span class="headTitle">
+                <span class="key">Config</span>
+                <span class="value material-symbols-outlined">keyboard_arrow_down</span>
+            </span>
+           	for key, value := range config {
+          		@KeyValue(key, value)
+           	}
+        </div>
+    </div>
+}
+
+templ LLMDataPresentation(llms []database.GetLLMSolutionCountsRow) {
+	{{
+		llm_name := "unknown"
+		if len(llms) > 0 {
+			llm_name = llms[0].Model
+		}
+	}}
+	<div class="llm-data">
+        <div class="content-header neumorphic-outer">
+            <button class="neumorphic-btn back-btn" onclick="SwitchView()">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <span>
+                {llm_name}
+            </span>
+            <span></span>
+        </div>
+        for _, llm := range llms {
+        	@LLMInfo(llm)
+        }
+    </div>
+}

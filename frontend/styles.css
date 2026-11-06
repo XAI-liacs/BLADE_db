@@ -1087,3 +1087,97 @@ body.modal-open {
 .smooth {
   transition: all 1s ease-in;
 }
+
+/*Circular Progress bar.....*/
+.progress-circle {
+    --size: 50px;
+
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+
+    background: conic-gradient(
+        #a4b2ed calc(var(--progress) * 360deg),
+        #e0e0e0 0deg
+    );
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.progress-circle::before {
+    content: "";
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    background: var(--back-color);
+    border-radius: 50%;
+}
+
+.progress-circle span {
+    position: relative;
+    font-size: 18px;
+    font-weight: lighter;
+}
+
+/* LLM View*/
+.llm-cell {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 20px;
+    margin-bottom: 10px;
+    box-shadow:
+        7px 7px 15px rgba(55, 84, 170, .15),
+        -7px -7px 20px rgba(255, 255, 255, 1),
+        0px 0px 4px rgba(255, 255, 255, .2);
+
+    border-radius: 30px;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.llm-info {
+    display: flex;
+    flex-direction: row;
+    align-items: left;
+    gap: 10px;
+    font-size: 1.2rem;
+}
+
+.llm-info > .material-symbols-outlined {
+    font-size: 40px;
+}
+
+.llm-title {
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    text-align: left;
+}
+
+.sub-title {
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
+.llm-cell.active {
+  background-color: #bbe5ea;
+  box-shadow: inset 0px 0px 4px rgba(255, 255, 255, 0),
+  inset 7px 7px 15px rgba(55, 84, 170, .15),
+  inset -7px -7px 20px rgba(255, 255, 255, 1),
+  0px 0px 4px rgba(255, 255, 255, .2) !important;
+  /* border-radius: 10px; */
+}
+
+.llm-descriptor {
+    font-weight: lighter;
+    padding: 10px;
+    border-radius: 30px;
+    background-color: transparent;
+}
