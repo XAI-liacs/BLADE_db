@@ -175,7 +175,7 @@ func MethodView(method database.Method) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		//unmarshal hardware and config here.
-		config := ParseMethod(method)
+		method_config, err := SortJSON(method.Config)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"neumorphic-card\"><div class=\"title\"><div class=\"name-description\"><span class=\"sub-title\">Method</span> <span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -202,17 +202,35 @@ func MethodView(method database.Method) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></div></div><div class=\"keyValuePairHead\"><span class=\"headTitle\"><span class=\"key\">Config</span> <span class=\"value material-symbols-outlined\">keyboard_arrow_down</span></span> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></div></div><div class=\"keyValuePairHead\"><span class=\"headTitle\"><span class=\"key\">Configuration</span> <span class=\"value material-symbols-outlined\">keyboard_arrow_down</span></span> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		for key, value := range config {
-			templ_7745c5c3_Err = KeyValue(key, value).Render(ctx, templ_7745c5c3_Buffer)
+		if err != nil {
+			templ_7745c5c3_Err = EmptyRightPanel("Unable to parse config file properly...").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<pre class=\"neumorphic-inner\"><code>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var9 string
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(string(method_config))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/contributors.templ`, Line: 98, Col: 27}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</code></pre>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -236,9 +254,9 @@ func ContributorsView(methods []database.Method, llms []database.Llm) templ.Comp
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var9 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var9 == nil {
-			templ_7745c5c3_Var9 = templ.NopComponent
+		templ_7745c5c3_Var10 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var10 == nil {
+			templ_7745c5c3_Var10 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		for _, method := range methods {

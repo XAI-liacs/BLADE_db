@@ -69,7 +69,7 @@ templ LLMView(llm database.Llm) {
 templ MethodView(method database.Method) {
 	{{
 		//unmarshal hardware and config here.
-		config := ParseMethod(method)
+		method_config, err := SortJSON(method.Config)
 	}}
 	<div class="neumorphic-card">
 		<div class="title">
@@ -87,12 +87,18 @@ templ MethodView(method database.Method) {
         </div>
         <div class="keyValuePairHead">
             <span class="headTitle">
-                <span class="key">Config</span>
+                <span class="key">Configuration</span>
                 <span class="value material-symbols-outlined">keyboard_arrow_down</span>
             </span>
-           	for key, value := range config {
-          		@KeyValue(key, value)
-           	}
+		if err != nil{
+			@EmptyRightPanel("Unable to parse config file properly...")
+		} else {
+           	<pre class="neumorphic-inner">
+	            <code>
+					{string(method_config)}
+	            </code>
+            </pre>
+		}
         </div>
     </div>
 }

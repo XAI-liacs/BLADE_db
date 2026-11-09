@@ -186,7 +186,7 @@ func MethodInfo(method database.GetMethodStatsRow) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div><div class=\"keyValuePair neumorphic-inner\"><div class=\"key\">LLM</div><div class=\"value\"><button type=\"button\" class=\"neumorphic-btn\" hx-on:click=\"\n\t\t\t\t        document.querySelector('#modalView').classList.add('show');\n\t\t\t\t        document.body.classList.add('modal-open');\n\t\t\t\t\t\tdocument.querySelector('#modalViewTitle').textContent = 'LLM'\n\t\t\t\t    \" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div><div class=\"keyValuePair neumorphic-inner\"><div class=\"key\">LLM</div><div class=\"value\"><button type=\"button\" class=\"neumorphic-btn\" hx-on:click=\"\n\t\t\t\t        document.querySelector('#modalView').classList.add('show');\n\t\t\t\t        document.body.classList.add('modal-open');\n\t\t\t\t\t\tdocument.querySelector('#modalViewTitle').textContent = 'LLMs'\n\t\t\t\t    \" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -14,6 +14,7 @@ templ MethodCell(method database.GetMethodsInfoRow) {
 	    <div class="cell-info">
 	        <span class="material-symbols-outlined">memory</span>
 	        <span class="cell-title">
+	            <span>{method.Name}</span>
 	            <span class="sub-title">
 				if method.Usage > 1 {
 					Used {method.Usage} times.
@@ -21,7 +22,6 @@ templ MethodCell(method database.GetMethodsInfoRow) {
 					Used {method.Usage} time.
 				}
 				</span>
-	            <span>{method.Name}</span>
 	        </span>
 	    </div>
 	    <span class="material-symbols-outlined">chevron_right</span>
