@@ -877,6 +877,14 @@ body {
     color: deeppink;
 }
 
+.keyValuePairHead > pre {
+    font-family: monospace;
+    font-size: inherit;
+    color: deeppink;
+    padding: 10px;
+    text-align: left;
+}
+
 /* Hide the experiment details by default */
 .experiment-details {
     display: none;
@@ -1123,7 +1131,7 @@ body.modal-open {
 }
 
 /* LLM View*/
-.llm-cell {
+.compact-cell {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -1142,7 +1150,7 @@ body.modal-open {
     box-sizing: border-box;
 }
 
-.llm-info {
+.cell-info {
     display: flex;
     flex-direction: row;
     align-items: left;
@@ -1150,11 +1158,11 @@ body.modal-open {
     font-size: 1.2rem;
 }
 
-.llm-info > .material-symbols-outlined {
+.cell-info > .material-symbols-outlined {
     font-size: 40px;
 }
 
-.llm-title {
+.cell-title {
     display: flex;
     flex-direction: column;
     align-items: left;
@@ -1166,7 +1174,7 @@ body.modal-open {
     opacity: 0.6;
 }
 
-.llm-cell.active {
+.compact-cell.active {
   background-color: #bbe5ea;
   box-shadow: inset 0px 0px 4px rgba(255, 255, 255, 0),
   inset 7px 7px 15px rgba(55, 84, 170, .15),

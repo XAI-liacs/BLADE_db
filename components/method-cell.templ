@@ -1,0 +1,35 @@
+package components
+import "XAI-liacs/BLADE_db/internal/database"
+
+templ MethodCell(method database.GetMethodsInfoRow) {
+	<div class="compact-cell neumporphic-btn"
+		hx-get={ "/html/method_info?method=" + method.Name }
+            hx-target="#right-panel"
+            hx-swap="innerHTML"
+            hx-on:click="
+                document.querySelectorAll('.compact-cell').forEach(el => el.classList.remove('active'));
+                this.closest('.compact-cell').classList.add('active');
+            "
+			onClick="SwitchView()">
+	    <div class="cell-info">
+	        <span class="material-symbols-outlined">memory</span>
+	        <span class="cell-title">
+	            <span class="sub-title">
+				if method.Usage > 1 {
+					Used {method.Usage} times.
+				} else {
+					Used {method.Usage} time.
+				}
+				</span>
+	            <span>{method.Name}</span>
+	        </span>
+	    </div>
+	    <span class="material-symbols-outlined">chevron_right</span>
+	</div>
+}
+
+templ MethodList(method_data []database.GetMethodsInfoRow) {
+	for _, method_datum := range method_data {
+		@MethodCell(method_datum)
+	}
+}

@@ -44,11 +44,14 @@ func main() {
 	mux.HandleFunc("/html/submit", app.submitHandler) // Used to upload an experiment file to the server.
 	mux.HandleFunc("/html/llms", app.HandleHtmlLLMCell)
 	mux.HandleFunc("/html/llm_info", app.HandleLLMData)
+	mux.HandleFunc("/html/methods", app.HandleHtmlMethodCell)
 	mux.HandleFunc("/html/run_data", app.HandleHtmlRunData)
 	mux.HandleFunc("/html/update_api", app.handleChangeAPIKey)
 	mux.HandleFunc("/html/experiments", app.HandleHtmlExperiment)
+	mux.HandleFunc("/html/method_info", app.HandleHtmlMethodInfo)
 	mux.HandleFunc("/html/lineage_plot", app.HandleHtmlLineagePlot)
 	mux.HandleFunc("/html/contributors", app.HandleHtmlContributors)
+	mux.HandleFunc("/html/llms_for_method", app.HandleHtmlLLMsForMethod)
 	mux.HandleFunc("/html/toggle_visibility", app.HandleHtmlVisibilityToggle)
 	mux.HandleFunc("/html/toggle_default_visibility", app.HandleHtmlDefaultUserVisibility)
 

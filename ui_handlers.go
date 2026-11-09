@@ -335,6 +335,34 @@ func (app *App) HandleHtmlContributors(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (app *App) HandleHtmlLLMsForMethod(w http.ResponseWriter, r *http.Request) {
+	_, err := app.authenticate(r, "html")
+	if err != nil {
+		log.Println("Got unauthorised access to /html/llms_for_method" + err.Error())
+		http.Error(w, "Unauthorised access.", http.StatusUnauthorized)
+		return
+	}
+	method_id, err := uuid.Parse(r.URL.Query().Get("method_id"))
+	if err != nil {
+		log.Println("Query error in /html/llms_for_method" + err.Error())
+		http.Error(w, "Bad access error, expected /html/llms_for_method?method_id=<some uuid>", http.StatusBadRequest)
+		return
+	}
+
+	llms, err := app.State.DB.GetLLMsForMethod(r.Context(), method_id)
+	if err != nil {
+		log.Println("Unable to get methods for /html/llms_for_method: " + err.Error())
+		http.Error(w, "Internal DB error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	methods := make([]database.Method, 0)
+	modalView := components.ContributorsView(methods, llms)
+	if err := modalView.Render(r.Context(), w); err != nil {
+		http.Error(w, "Failed to render visibility indicator", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (app *App) HandleHtmlLineagePlot(w http.ResponseWriter, r *http.Request) {
 	_, err := app.authenticate(r, "html")
 	if err != nil {
@@ -433,6 +461,46 @@ func (app *App) HandleLLMData(w http.ResponseWriter, r *http.Request) {
 	}
 	llm_info_presentation := components.LLMDataPresentation(llm_info)
 	llm_info_presentation.Render(r.Context(), w)
+}
+
+// Method Handlers.
+func (app *App) HandleHtmlMethodCell(w http.ResponseWriter, r *http.Request) {
+	_, err := app.authenticate(r, "html")
+	empty_view := components.EmptyRightPanel("No relevant Methods found...")
+	if err != nil {
+		http.Error(w, "Unable to authorise user: "+err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	sort := r.URL.Query().Get("sort")
+	// sort = strings.ToLower(sort)
+
+	methods, err := app.State.DB.GetMethodsInfo(r.Context(), sort)
+	if err != nil {
+		empty_view = components.EmptyRightPanel("Error occured: " + err.Error())
+		log.Println("Got error rendering Method Cells: " + err.Error())
+		empty_view.Render(r.Context(), w)
+		return
+	}
+	if len(methods) == 0 {
+		empty_view.Render(r.Context(), w)
+	}
+	llm_cells := components.MethodList(methods)
+	llm_cells.Render(r.Context(), w)
+}
+
+func (app *App) HandleHtmlMethodInfo(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("\t " + r.URL.String())
+	name := r.URL.Query().Get("method")
+	method_info, err := app.State.DB.GetMethodStats(r.Context(), name)
+	if err != nil {
+		empty_view := components.EmptyRightPanel("Unable to fetch data for method " + name + "...")
+		empty_view.Render(r.Context(), w)
+		http.Error(w, "Unable to fetch data: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	method_info_presentation := components.MethodDataPresentation(method_info)
+	method_info_presentation.Render(r.Context(), w)
 }
 
 // Dashboard Handlers.

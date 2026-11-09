@@ -2,22 +2,20 @@ package components
 import "XAI-liacs/BLADE_db/internal/database"
 
 templ LLMCell(llm database.GetAllLLMsRow) {
-	<div class="llm-cell neumporphic-btn"
+	<div class="compact-cell neumporphic-btn"
 		hx-get={ "/html/llm_info?model=" + llm.Model }
             hx-target="#right-panel"
             hx-swap="innerHTML"
             hx-on:click="
-                document.querySelectorAll('.llm-cell').forEach(el => el.classList.remove('active'));
-                this.closest('.llm-cell').classList.add('active');
-                const details = this.closest('.llm-cell').querySelector('.experiment-details');
-                if (!details.innerHTML.trim()) htmx.trigger(details, 'loadRuns');
+                document.querySelectorAll('.compact-cell').forEach(el => el.classList.remove('active'));
+                this.closest('.compact-cell').classList.add('active');
             "
 			onClick="SwitchView()">
-	    <div class="llm-info">
+	    <div class="cell-info">
 	        <span class="material-symbols-outlined">neurology</span>
-	        <span class="llm-title">
-	            <span>{llm.Model}</span>
+	        <span class="cell-title">
 	            <span class="sub-title">{llm.Type}</span>
+	            <span>{llm.Model}</span>
 	        </span>
 	    </div>
 	    <span class="material-symbols-outlined">chevron_right</span>

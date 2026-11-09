@@ -44,6 +44,104 @@ func (q *Queries) CreateMethod(ctx context.Context, arg CreateMethodParams) (uui
 	return id, err
 }
 
+const getMethodStats = `-- name: GetMethodStats :many
+SELECT
+    m.id, m.name, m.hash, m.source, m.config,
+    COALESCE(r.usage_count, 0) AS method_usage_count,
+    COALESCE(s.total_solution_count, 0) AS total_solution_count,
+    COALESCE(s.valid_solution_count, 0) AS valid_solution_count,
+    COALESCE(
+        ROUND(
+            s.valid_solution_count * 100.0 /
+            NULLIF(s.total_solution_count, 0),
+            2
+        ),
+        0
+    ) AS success_rate,
+    COALESCE(l.llm_ids, ARRAY[]::uuid[]) AS llm_ids
+FROM method m
+LEFT JOIN (
+    SELECT
+        method_id,
+        COUNT(DISTINCT run_id) AS usage_count
+    FROM run_descriptor
+    GROUP BY method_id
+) r ON r.method_id = m.id
+LEFT JOIN (
+    SELECT
+        rd.method_id,
+        COUNT(sol.id) AS total_solution_count,
+        COUNT(sol.id) FILTER (
+            WHERE sol.fitness IS NOT NULL
+        ) AS valid_solution_count
+    FROM run_descriptor rd
+    JOIN run_solution rs
+        ON rs.run_id = rd.run_id
+    JOIN solution sol
+        ON sol.id = rs.solution_id
+    GROUP BY rd.method_id
+) s ON s.method_id = m.id
+LEFT JOIN (
+    SELECT
+        method_id,
+        ARRAY_AGG(DISTINCT llm_id) AS llm_ids
+    FROM method_llm
+    GROUP BY method_id
+) l ON l.method_id = m.id
+WHERE m.name = $1
+ORDER BY
+    success_rate DESC,
+    m.source,
+    m.hash
+`
+
+type GetMethodStatsRow struct {
+	ID                 uuid.UUID
+	Name               string
+	Hash               string
+	Source             string
+	Config             json.RawMessage
+	MethodUsageCount   int64
+	TotalSolutionCount int64
+	ValidSolutionCount int64
+	SuccessRate        interface{}
+	LlmIds             interface{}
+}
+
+func (q *Queries) GetMethodStats(ctx context.Context, name string) ([]GetMethodStatsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getMethodStats, name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetMethodStatsRow
+	for rows.Next() {
+		var i GetMethodStatsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Hash,
+			&i.Source,
+			&i.Config,
+			&i.MethodUsageCount,
+			&i.TotalSolutionCount,
+			&i.ValidSolutionCount,
+			&i.SuccessRate,
+			&i.LlmIds,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getMethods = `-- name: GetMethods :many
 SELECT id, name, hash, source, config FROM method
 `
@@ -64,6 +162,52 @@ func (q *Queries) GetMethods(ctx context.Context) ([]Method, error) {
 			&i.Source,
 			&i.Config,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMethodsInfo = `-- name: GetMethodsInfo :many
+SELECT
+    m.name,
+    COUNT(DISTINCT m.id) AS config_count,
+    COUNT(DISTINCT rd.run_id) AS usage
+FROM method m
+LEFT JOIN run_descriptor rd
+    ON rd.method_id = m.id
+GROUP BY m.name
+ORDER BY
+    CASE WHEN $1::text = 'Name' THEN m.name END ASC,
+    CASE WHEN $1::text = 'Top'
+        THEN COUNT(DISTINCT rd.run_id)
+    END DESC,
+    m.name ASC
+`
+
+type GetMethodsInfoRow struct {
+	Name        string
+	ConfigCount int64
+	Usage       int64
+}
+
+func (q *Queries) GetMethodsInfo(ctx context.Context, sortBy string) ([]GetMethodsInfoRow, error) {
+	rows, err := q.db.QueryContext(ctx, getMethodsInfo, sortBy)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetMethodsInfoRow
+	for rows.Next() {
+		var i GetMethodsInfoRow
+		if err := rows.Scan(&i.Name, &i.ConfigCount, &i.Usage); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

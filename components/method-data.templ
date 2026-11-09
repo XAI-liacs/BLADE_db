@@ -1,0 +1,91 @@
+package components
+
+import (
+	"fmt"
+	"XAI-liacs/BLADE_db/internal/database"
+)
+
+templ MethodInfo(method database.GetMethodStatsRow) {
+	{{
+		ratio := float64(method.ValidSolutionCount) / float64(max(method.TotalSolutionCount, 1))
+		percentage := method.ValidSolutionCount * 100 / max(method.TotalSolutionCount, 1)
+		symbol := "memory"
+		method_config, err := SortJSON(method.Config)
+		if err != nil {
+			method_config = make([]byte, 0)
+		}
+	}}
+
+	<div class="neumorphic-card" id={method.ID.String()}>
+        <div class="title">
+            <div class="name-description">
+                <span class="sub-title">{method.Source}</span>
+                <span style="display: flex; flex-direction: row; align-content: center; gap: 5px;">
+                    <span class="material-symbols-outlined">{symbol}</span>
+                        {method.Name}
+                </span>
+            </div>
+            <div class="progress-circle" style={fmt.Sprintf("--progress: %.5f", ratio)}>
+                <span>{percentage}%</span>
+            </div>
+        </div>
+        <span class="llm-descriptor">This configuration of {method.Name} successfully generated valid solutions form LLMs {method.ValidSolutionCount} out of {method.TotalSolutionCount} times.</span>
+        <div class="keyValuePairHead">
+            <span class="headTitle">
+                <span class="key">Configuration</span>
+                <span class="value material-symbols-outlined">keyboard_arrow_down</span>
+            </span>
+			if err != nil{
+				@EmptyRightPanel("Unable to parse config file properly...")
+			} else {
+	           	<pre class="neumorphic-inner">
+		            <code>
+						{string(method_config)}
+		            </code>
+	            </pre>
+			}
+        </div>
+        <div class="keyValuePair neumorphic-inner">
+        	<div class="key">LLM</div>
+        	<div class="value">
+       		<button
+				    type="button"
+				    class="neumorphic-btn"
+				    hx-on:click="
+				        document.querySelector('#modalView').classList.add('show');
+				        document.body.classList.add('modal-open');
+						document.querySelector('#modalViewTitle').textContent = 'LLMs'
+				    "
+				    hx-get={"/html/llms_for_method?method_id="+method.ID.String()}
+				    hx-target="#modalViewContent"
+				    hx-swap="innerHTML"
+					>
+		            <span class="material-symbols-outlined">north_east</span>
+		        </button>
+         	</div>
+        </div>
+    </div>
+}
+
+templ MethodDataPresentation(methods []database.GetMethodStatsRow) {
+	{{
+		method_name := "Unknown"
+		if len(methods) > 0 {
+			method_name = methods[0].Name
+		}
+	}}
+	<div class="llm-data">
+        <div class="content-header neumorphic-outer">
+            <button class="neumorphic-btn back-btn" onclick="SwitchView()">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <span>
+                {method_name}
+            </span>
+            <span></span>
+        </div>
+        for _, method := range methods {
+        	@MethodInfo(method)
+        }
+    </div>
+}

@@ -258,3 +258,20 @@ func getPlotData(solutions []database.GetSolutionsForRunRow) (plotData map[strin
 	}
 	return plotData, nil
 }
+
+// Parse Method config files into pretty
+// render for <pre><code></code></pre>...
+func SortJSON(data []byte) ([]byte, error) {
+	var value any
+
+	if err := json.Unmarshal(data, &value); err != nil {
+		return nil, err
+	}
+
+	sorted, err := json.MarshalIndent(value, "", "    ")
+	if err != nil {
+		return nil, err
+	}
+
+	return sorted, nil
+}

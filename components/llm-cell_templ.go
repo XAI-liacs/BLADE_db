@@ -31,7 +31,7 @@ func LLMCell(llm database.GetAllLLMsRow) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"llm-cell neumporphic-btn\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"compact-cell neumporphic-btn\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -44,27 +44,27 @@ func LLMCell(llm database.GetAllLLMsRow) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-target=\"#right-panel\" hx-swap=\"innerHTML\" hx-on:click=\"\n                document.querySelectorAll('.llm-cell').forEach(el => el.classList.remove('active'));\n                this.closest('.llm-cell').classList.add('active');\n                const details = this.closest('.llm-cell').querySelector('.experiment-details');\n                if (!details.innerHTML.trim()) htmx.trigger(details, 'loadRuns');\n            \" onClick=\"SwitchView()\"><div class=\"llm-info\"><span class=\"material-symbols-outlined\">neurology</span> <span class=\"llm-title\"><span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-target=\"#right-panel\" hx-swap=\"innerHTML\" hx-on:click=\"\n                document.querySelectorAll('.compact-cell').forEach(el => el.classList.remove('active'));\n                this.closest('.compact-cell').classList.add('active');\n            \" onClick=\"SwitchView()\"><div class=\"cell-info\"><span class=\"material-symbols-outlined\">neurology</span> <span class=\"cell-title\"><span class=\"sub-title\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(llm.Model)
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(llm.Type)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/llm-cell.templ`, Line: 19, Col: 29}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/llm-cell.templ`, Line: 17, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span> <span class=\"sub-title\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span> <span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(llm.Type)
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(llm.Model)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/llm-cell.templ`, Line: 20, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/llm-cell.templ`, Line: 18, Col: 29}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
